@@ -56,6 +56,9 @@ var app = (function () {
     function text(data) {
         return document.createTextNode(data);
     }
+    function space() {
+        return text(' ');
+    }
     function empty() {
         return text('');
     }
@@ -549,11 +552,11 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[12] = list[i];
+    	child_ctx[16] = list[i];
     	return child_ctx;
     }
 
-    // (72:1) {#if frameList.length !== 0}
+    // (101:2) {#if frameList.length !== 0}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -586,7 +589,7 @@ var app = (function () {
     			current = true;
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*frameList*/ 1) {
+    			if (dirty & /*offset, handleDragStart, frameList*/ 13) {
     				each_value = /*frameList*/ ctx[0];
     				validate_each_argument(each_value);
     				let i;
@@ -642,34 +645,53 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(72:1) {#if frameList.length !== 0}",
+    		source: "(101:2) {#if frameList.length !== 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (73:1) {#each frameList as frame}
+    // (102:2) {#each frameList as frame}
     function create_each_block(ctx) {
+    	let div;
     	let frame;
+    	let t;
     	let current;
+    	let mounted;
+    	let dispose;
 
     	frame = new Frame({
-    			props: { frame: /*frame*/ ctx[12] },
+    			props: { frame: /*frame*/ ctx[16] },
     			$$inline: true
     		});
 
+    	function dragstart_handler(...args) {
+    		return /*dragstart_handler*/ ctx[8](/*frame*/ ctx[16], ...args);
+    	}
+
     	const block = {
     		c: function create() {
+    			div = element("div");
     			create_component(frame.$$.fragment);
+    			t = space();
+    			add_location(div, file, 102, 2, 3408);
     		},
     		m: function mount(target, anchor) {
-    			mount_component(frame, target, anchor);
+    			insert_dev(target, div, anchor);
+    			mount_component(frame, div, null);
+    			append_dev(div, t);
     			current = true;
+
+    			if (!mounted) {
+    				dispose = listen_dev(div, "dragstart", dragstart_handler, false, false, false);
+    				mounted = true;
+    			}
     		},
-    		p: function update(ctx, dirty) {
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
     			const frame_changes = {};
-    			if (dirty & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[12];
+    			if (dirty & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[16];
     			frame.$set(frame_changes);
     		},
     		i: function intro(local) {
@@ -682,7 +704,10 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			destroy_component(frame, detaching);
+    			if (detaching) detach_dev(div);
+    			destroy_component(frame);
+    			mounted = false;
+    			dispose();
     		}
     	};
 
@@ -690,7 +715,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(73:1) {#each frameList as frame}",
+    		source: "(102:2) {#each frameList as frame}",
     		ctx
     	});
 
@@ -711,10 +736,10 @@ var app = (function () {
     			div = element("div");
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
-    			attr_dev(div, "class", "svelte-266g3w");
-    			add_location(div, file, 65, 1, 2089);
-    			attr_dev(main, "class", "svelte-266g3w");
-    			add_location(main, file, 62, 0, 1908);
+    			attr_dev(div, "class", "svelte-anfaed");
+    			add_location(div, file, 94, 2, 3127);
+    			attr_dev(main, "class", "svelte-anfaed");
+    			add_location(main, file, 91, 1, 2943);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -727,9 +752,9 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div, "dragover", prevent_default(/*dragover_handler*/ ctx[6]), false, true, false),
-    					listen_dev(div, "drop", prevent_default(/*drop_handler*/ ctx[7]), false, true, false),
-    					listen_dev(div, "paste", /*paste_handler*/ ctx[8], false, false, false)
+    					listen_dev(div, "dragover", prevent_default(/*dragover_handler*/ ctx[9]), false, true, false),
+    					listen_dev(div, "drop", prevent_default(/*drop_handler*/ ctx[10]), false, true, false),
+    					listen_dev(div, "paste", /*paste_handler*/ ctx[11], false, false, false)
     				];
 
     				mounted = true;
@@ -793,15 +818,42 @@ var app = (function () {
     	let { name } = $$props;
     	let frameList = [];
     	let coords = { x: 0, y: 0 };
+    	let offset = [];
+    	let currentFrame;
+
+    	const handleDragStart = (event, frameid) => {
+    		console.log(frameid);
+    		event.dataTransfer.setData('frame id', frameid);
+    		event.dataTransfer.dropEffect = 'move';
+    		$$invalidate(1, coords.x = event.clientX, coords);
+    		$$invalidate(1, coords.y = event.clientY, coords);
+    		$$invalidate(2, offset = [coords.x - frameList[frameid].x, coords.y - frameList[frameid].y]);
+    		return offset; // shouldn't change on drag
+    	};
 
     	const drag = event => {
     		$$invalidate(1, coords.x = event.clientX, coords);
     		$$invalidate(1, coords.y = event.clientY, coords);
-
-    		// console.log(coords)
+    		let id = event.dataTransfer.getData('frame id');
+    		let corner = [frameList[id].x, frameList[id].y]; //top left
+    		$$invalidate(0, frameList[id].x = coords.x - offset[0], frameList);
+    		$$invalidate(0, frameList[id].y = coords.y - offset[1], frameList);
+    		$$invalidate(0, frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px`, frameList);
+    		console.log(coords, offset, corner);
     		return false;
     	};
 
+    	/*
+    https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg
+    + [0,0]
+
+    + [4,3]
+    x [6,4] -> [2,1] ([0,0])
+    + [3,3]
+
+    + [7,6]
+    x [9,5] -> [2,1] ([0,0])
+    */
     	const trackMouse = event => {
     		$$invalidate(1, coords.x = event.clientX, coords);
     		$$invalidate(1, coords.y = event.clientY, coords);
@@ -827,7 +879,11 @@ var app = (function () {
 
     		if (event.dataTransfer.dropEffect == 'move') {
     			let id = event.dataTransfer.getData('frame id');
-    			$$invalidate(0, frameList[id].style = `position:fixed; left:${coords.x}px; top:${coords.y}px`, frameList);
+
+    			// frameList[id].x = coords.x - frameList[id].x
+    			// frameList[id].y = coords.y - frameList[id].y
+    			$$invalidate(0, frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px`, frameList);
+
     			console.log(event.dataTransfer.getData('frame id'));
     			console.log(coords);
     		}
@@ -874,12 +930,13 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
+    	const dragstart_handler = (frame, event) => $$invalidate(2, offset = handleDragStart(event, frame.id));
     	const dragover_handler = event => drag(event);
     	const drop_handler = event => drop(event, coords);
     	const paste_handler = event => paste(event);
 
     	$$self.$$set = $$props => {
-    		if ('name' in $$props) $$invalidate(5, name = $$props.name);
+    		if ('name' in $$props) $$invalidate(7, name = $$props.name);
     	};
 
     	$$self.$capture_state = () => ({
@@ -887,6 +944,9 @@ var app = (function () {
     		name,
     		frameList,
     		coords,
+    		offset,
+    		currentFrame,
+    		handleDragStart,
     		drag,
     		trackMouse,
     		drop,
@@ -896,9 +956,11 @@ var app = (function () {
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('name' in $$props) $$invalidate(5, name = $$props.name);
+    		if ('name' in $$props) $$invalidate(7, name = $$props.name);
     		if ('frameList' in $$props) $$invalidate(0, frameList = $$props.frameList);
     		if ('coords' in $$props) $$invalidate(1, coords = $$props.coords);
+    		if ('offset' in $$props) $$invalidate(2, offset = $$props.offset);
+    		if ('currentFrame' in $$props) currentFrame = $$props.currentFrame;
     		if ('id' in $$props) id = $$props.id;
     	};
 
@@ -909,10 +971,13 @@ var app = (function () {
     	return [
     		frameList,
     		coords,
+    		offset,
+    		handleDragStart,
     		drag,
     		drop,
     		paste,
     		name,
+    		dragstart_handler,
     		dragover_handler,
     		drop_handler,
     		paste_handler
@@ -922,7 +987,7 @@ var app = (function () {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { name: 5 });
+    		init(this, options, instance, create_fragment, safe_not_equal, { name: 7 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -934,7 +999,7 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*name*/ ctx[5] === undefined && !('name' in props)) {
+    		if (/*name*/ ctx[7] === undefined && !('name' in props)) {
     			console_1.warn("<App> was created without expected prop 'name'");
     		}
     	}
