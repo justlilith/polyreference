@@ -1,7 +1,9 @@
 <script lang='ts'>
+  import Fab from '@smui/fab'
   export let frame:FrameT
   
-  let style:string=""
+  let styleConstant:string=` background-image: url('${frame.url}'`
+  frame.style = frame.style + styleConstant
   const handleDrag = (event) => {
     // console.log(event)
     // frame.style = `position:fixed; left:${frame.x}px; top:${frame.y}px`
@@ -23,14 +25,33 @@ class='frame'
 draggable='true'
 on:drag={event => handleDrag(event)}
 on:dragstart={event => handleDragStart(event)}>
-  <img alt='reference' src={frame.url} >
+<!-- <div class='resize-button-frame'> -->
+<!-- <div class='resize-button'> -->
+  <!-- <Fab>Resize</Fab> -->
+<!-- </div> -->
+<!-- </div> -->
+  <!-- <img alt='reference' src={frame.url} > -->
 </div>
 
 <style lang='scss'>
   div {
-    height: 100px;
-    width: 100px;
-    display:block;
+    height: 200px;
+    width: 200px;
+    // display:block;
+    background-size: contain;
+  }
+
+  .resize-button-frame {
+    display:flex;
+    width:100%;
+    height:100%;
+  }
+  .resize-button {
+    position:absolute;
+    right:0px;
+    bottom:0px;
+    border: thin solid red;
+    // z-index:10;
   }
   
 </style>

@@ -4,10 +4,15 @@
 	
 	let frameList:Array<FrameT> = []
 		
+		let id = 0
 		let coords = { x:0, y:0}
 		let offset = []
 		let currentFrame
+
+	let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg')
 		
+	frameList.push(init)
+
 		const handleDragStart = (event, frameid) => {
 			console.log(frameid)
 			event.dataTransfer.setData('frame id', frameid)
@@ -25,7 +30,7 @@
 			let corner = [frameList[id].x, frameList[id].y] //top left
 			frameList[id].x = coords.x - offset[0]
 			frameList[id].y = coords.y - offset[1]
-			frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px`
+			frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px; background-image: url('${frameList[id].url}')`
 			console.log(coords, offset, corner)
 			return false
 		}
@@ -54,7 +59,7 @@
 				let newFrame = buildFrame(data)
 				newFrame.x = event.clientX
 				newFrame.y = event.clientY
-				newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px`
+				newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px; background-image: url('${data}')`
 				data ? frameList = [...frameList, newFrame] : null
 				console.log(frameList)
 				console.log(newFrame.style)
@@ -63,34 +68,39 @@
 				let id = event.dataTransfer.getData('frame id')
 				// frameList[id].x = coords.x - frameList[id].x
 				// frameList[id].y = coords.y - frameList[id].y
-				frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px`
+				frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px; background-image: url('${frameList[id].url}')`
 				console.log(event.dataTransfer.getData('frame id'))
 				console.log(coords)
 			}
 		}
 		
 		const paste = (event) => {
-			let data = event.clipboardData.getData('text')
+			let image = event?.clipboardData?.items[0].getAsFile()
+			let data = event?.clipboardData?.getData('text')
+			if (image) {
+				data = URL.createObjectURL(image)
+				console.log(image)
+				console.log(data)
+			}
 			console.log(event)
 			console.log('paste')
 			let newFrame = buildFrame(data)
 			newFrame.x = 0
 			newFrame.y = 0
-			newFrame.style=`position:fixed; left:${newFrame.x}px; top:${newFrame.y}px`
+			newFrame.style=`position:fixed; left:${newFrame.x}px; top:${newFrame.y}px; background-image: url('${newFrame.url}')`
 			data ? frameList = [...frameList, newFrame] : null
 			console.log(frameList)
 			console.log(newFrame.style)
 		}
 		
-		let id = 0
-		const buildFrame = (data):FrameT => {
+		function buildFrame (data):FrameT {
 			let frame =
 			{ url: data
 				, width: 100
 				,	height: 100
 				, x: 0
 				, y: 0
-				, style: ''
+				, style: ``
 				, id: id
 			}
 			
