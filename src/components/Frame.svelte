@@ -25,15 +25,22 @@ class='frame'
 draggable='true'
 on:drag={event => handleDrag(event)}
 on:dragstart={event => handleDragStart(event)}>
-<!-- <div class='resize-button-frame'> -->
+<div class='resize-button-frame'>
+<div class='handle-left'></div>
+<div class='handle-right'></div>
 <!-- <div class='resize-button'> -->
   <!-- <Fab>Resize</Fab> -->
 <!-- </div> -->
-<!-- </div> -->
-  <!-- <img alt='reference' src={frame.url} > -->
+<!-- <img alt='reference' src={frame.url} > -->
+</div>
 </div>
 
 <style lang='scss'>
+  @mixin wh100 {
+    width:100%;
+    height:100%;
+  }
+
   div {
     height: 200px;
     width: 200px;
@@ -42,9 +49,28 @@ on:dragstart={event => handleDragStart(event)}>
   }
 
   .resize-button-frame {
-    display:flex;
-    width:100%;
-    height:100%;
+    display:grid;
+    grid-template-columns: 5% 90% 5%;
+    grid-template-rows: 5% 90% 5%;
+    grid-template-areas:
+    'tleft top tright'
+    'left . right'
+    'bleft bottom bright';
+    // width:100%;
+    // height:100%;
+    border: thin solid cyan
+  }
+
+  .handle-left {
+    grid-area: left;
+    background-color: deepskyblue;
+    @include wh100
+  }
+  
+  .handle-right {
+    grid-area: right;
+    background-color: deeppink;
+    @include wh100
   }
   .resize-button {
     position:absolute;

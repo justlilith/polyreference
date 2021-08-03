@@ -2712,43 +2712,61 @@ var app = (function () {
     const file$1 = "src\\components\\Frame.svelte";
 
     function create_fragment$1(ctx) {
-    	let div;
-    	let div_style_value;
+    	let div3;
+    	let div2;
+    	let div0;
+    	let t;
+    	let div1;
+    	let div3_style_value;
     	let mounted;
     	let dispose;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
-    			attr_dev(div, "style", div_style_value = /*frame*/ ctx[0].style);
-    			attr_dev(div, "class", "frame svelte-1fgl5ol");
-    			attr_dev(div, "draggable", "true");
-    			add_location(div, file$1, 17, 0, 554);
+    			div3 = element("div");
+    			div2 = element("div");
+    			div0 = element("div");
+    			t = space();
+    			div1 = element("div");
+    			attr_dev(div0, "class", "handle-left svelte-qcwquk");
+    			add_location(div0, file$1, 24, 0, 736);
+    			attr_dev(div1, "class", "handle-right svelte-qcwquk");
+    			add_location(div1, file$1, 25, 0, 769);
+    			attr_dev(div2, "class", "resize-button-frame svelte-qcwquk");
+    			add_location(div2, file$1, 23, 0, 701);
+    			attr_dev(div3, "style", div3_style_value = /*frame*/ ctx[0].style);
+    			attr_dev(div3, "class", "frame svelte-qcwquk");
+    			attr_dev(div3, "draggable", "true");
+    			add_location(div3, file$1, 17, 0, 554);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
+    			insert_dev(target, div3, anchor);
+    			append_dev(div3, div2);
+    			append_dev(div2, div0);
+    			append_dev(div2, t);
+    			append_dev(div2, div1);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div, "drag", /*drag_handler*/ ctx[3], false, false, false),
-    					listen_dev(div, "dragstart", /*dragstart_handler*/ ctx[4], false, false, false)
+    					listen_dev(div3, "drag", /*drag_handler*/ ctx[3], false, false, false),
+    					listen_dev(div3, "dragstart", /*dragstart_handler*/ ctx[4], false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*frame*/ 1 && div_style_value !== (div_style_value = /*frame*/ ctx[0].style)) {
-    				attr_dev(div, "style", div_style_value);
+    			if (dirty & /*frame*/ 1 && div3_style_value !== (div3_style_value = /*frame*/ ctx[0].style)) {
+    				attr_dev(div3, "style", div3_style_value);
     			}
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(div3);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -3035,9 +3053,9 @@ var app = (function () {
     			div = element("div");
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
-    			attr_dev(div, "class", "svelte-anfaed");
+    			attr_dev(div, "class", "svelte-3bx8l5");
     			add_location(div, file, 103, 2, 3808);
-    			attr_dev(main, "class", "svelte-anfaed");
+    			attr_dev(main, "class", "svelte-3bx8l5");
     			add_location(main, file, 100, 1, 3624);
     		},
     		l: function claim(nodes) {
