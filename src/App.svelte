@@ -23,14 +23,16 @@
 			return offset // shouldn't change on drag
 		}
 		
-		const drag = (event) => {
+		const dragOver = (event) => {
 			coords.x = event.clientX
 			coords.y = event.clientY
 			let id = event.dataTransfer.getData('frame id')
+			console.log(id)
 			let corner = [frameList[id].x, frameList[id].y] //top left
 			frameList[id].x = coords.x - offset[0]
 			frameList[id].y = coords.y - offset[1]
-			frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px; background-image: url('${frameList[id].url}')`
+			frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px;`
+			console.log(frameList[id].style)
 			console.log(coords, offset, corner)
 			return false
 		}
@@ -59,7 +61,7 @@
 				let newFrame = buildFrame(data)
 				newFrame.x = event.clientX
 				newFrame.y = event.clientY
-				newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px; background-image: url('${data}')`
+				newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`
 				data ? frameList = [...frameList, newFrame] : null
 				console.log(frameList)
 				console.log(newFrame.style)
@@ -68,7 +70,6 @@
 				let id = event.dataTransfer.getData('frame id')
 				// frameList[id].x = coords.x - frameList[id].x
 				// frameList[id].y = coords.y - frameList[id].y
-				frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px; background-image: url('${frameList[id].url}')`
 				console.log(event.dataTransfer.getData('frame id'))
 				console.log(coords)
 			}
@@ -87,7 +88,7 @@
 			let newFrame = buildFrame(data)
 			newFrame.x = 0
 			newFrame.y = 0
-			newFrame.style=`position:fixed; left:${newFrame.x}px; top:${newFrame.y}px; background-image: url('${newFrame.url}')`
+			newFrame.style=`position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`
 			data ? frameList = [...frameList, newFrame] : null
 			console.log(frameList)
 			console.log(newFrame.style)
@@ -96,8 +97,8 @@
 		function buildFrame (data):FrameT {
 			let frame =
 			{ url: data
-				, width: 100
-				,	height: 100
+				, width: 200
+				,	height: 200
 				, x: 0
 				, y: 0
 				, style: ``
@@ -114,15 +115,16 @@
 	<main>
 		<!-- <h1>welcome to polyreference, {name}!</h1> -->
 		<!-- <p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p> -->
+		<!-- on:dragover|preventDefault={event => dragOver(event)} -->
 		<div id='dropzone'
-		on:dragover|preventDefault={event => drag(event)}
 		on:drop|preventDefault={event => drop(event, coords)}
 		on:paste={event => paste(event)}
 		>
 		<!-- on:mousemove={event => trackMouse(event)} -->
 		{#if frameList.length !== 0}
 		{#each frameList as frame}
-		<div on:dragstart={event => offset = handleDragStart(event, frame.id)}>
+		<!-- <div on:dragstart={event => offset = handleDragStart(event, frame.id)}> -->
+			<div>
 			<Frame frame={frame}></Frame>
 
 		</div>
