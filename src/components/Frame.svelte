@@ -78,11 +78,8 @@
   */
 </script>
 
-<div
-style={frame.style}
-class='frame'
->
-<div class='resize-handles-frame'>
+<div style={frame.style} class='frame'>
+<div class='resize-handles-frame' draggable='true'>
   <div class='handle-left'
   draggable='true'
   on:dragstart={event => offset = handleDragStartResize(event, 'right')}
@@ -143,16 +140,16 @@ on:dragstart={event => offset = handleDragStartResize(event, 'bright')}
   .handle-left {
     grid-area: left;
     background-color: deepskyblue;
-    @include wh100
+    @include wh100;
   }
   .handle-right {
     grid-area: right;
     background-color: deeppink;
-    @include wh100
+    @include wh100;
   }
   .handle-bright {
+    @include wh100;
     grid-area: bright;
     background-color: silver;
-    @include wh100
   }  
 </style>

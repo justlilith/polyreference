@@ -2738,22 +2738,23 @@ var app = (function () {
     			div2 = element("div");
     			t2 = space();
     			div3 = element("div");
-    			attr_dev(div0, "class", "handle-left svelte-y833p5");
+    			attr_dev(div0, "class", "handle-left svelte-plpold");
     			attr_dev(div0, "draggable", "true");
-    			add_location(div0, file$1, 77, 2, 3051);
-    			attr_dev(div1, "class", "center svelte-y833p5");
+    			add_location(div0, file$1, 74, 2, 3064);
+    			attr_dev(div1, "class", "center svelte-plpold");
     			attr_dev(div1, "draggable", "true");
-    			add_location(div1, file$1, 82, 2, 3242);
-    			attr_dev(div2, "class", "handle-right svelte-y833p5");
+    			add_location(div1, file$1, 79, 2, 3255);
+    			attr_dev(div2, "class", "handle-right svelte-plpold");
     			attr_dev(div2, "draggable", "true");
-    			add_location(div2, file$1, 87, 0, 3418);
-    			attr_dev(div3, "class", "handle-bright svelte-y833p5");
+    			add_location(div2, file$1, 84, 0, 3431);
+    			attr_dev(div3, "class", "handle-bright svelte-plpold");
     			attr_dev(div3, "draggable", "true");
-    			add_location(div3, file$1, 90, 0, 3543);
-    			attr_dev(div4, "class", "resize-handles-frame svelte-y833p5");
-    			add_location(div4, file$1, 76, 0, 3013);
+    			add_location(div3, file$1, 87, 0, 3556);
+    			attr_dev(div4, "class", "resize-handles-frame svelte-plpold");
+    			attr_dev(div4, "draggable", "true");
+    			add_location(div4, file$1, 73, 0, 3009);
     			attr_dev(div5, "style", div5_style_value = /*frame*/ ctx[0].style);
-    			attr_dev(div5, "class", "frame svelte-y833p5");
+    			attr_dev(div5, "class", "frame svelte-plpold");
     			add_location(div5, file$1, 72, 0, 2968);
     		},
     		l: function claim(nodes) {
