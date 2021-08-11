@@ -12,6 +12,7 @@ interface FrameT {
   topLeftHandle: Handle
   bottomRightHandle: Handle
   bottomLeftHandle: Handle
+  top: boolean
 }
 
 interface Handle {

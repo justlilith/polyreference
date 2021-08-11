@@ -4,8 +4,9 @@
   
   
   export let frame:FrameT
-
-  export let style:string
+  // export let style = ''
+  
+  export let addedClass = ''
   
   let coords = { x:0, y:0}
   let offset = [0,0]
@@ -30,7 +31,7 @@
   }
   
   const handleDragMove = (event) => {
-    console.log('dragging')
+    // console.log('dragging')
     // console.log(event.target)
     let id = event.dataTransfer.getData('frame id')
     coords.x = event.pageX
@@ -41,11 +42,13 @@
     // frame.y = coords.y - offset[1]
     frame.x = event.clientX - offset[0]
     frame.y = event.clientY - offset[1]
-    // console.log(coords, frame.x, frame.y, offset)
-    frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant
+    // frame.x = event.movementX
+    // frame.y = event.movementY
+    // console.log(frame.x, frame.y)
+    frame.style = `width: ${frame.width}px; height: ${frame.height}px; position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant
     // console.log(id)
     // console.log(frame.style)
-    moveHandles(frame)
+    frame = moveHandles(frame)
     return false
   }
   
@@ -162,31 +165,31 @@
       , edge: edge
     })
   }
-
+  
   const setActive = () => {
-			// console.log('well')
-			resizable = true
-		}
-		const setInactive = () => {
-			// console.log('nevermind')
-			resizable = false
-		}
+    console.log('well')
+    resizable = true
+  }
+  const setInactive = () => {
+    console.log('nevermind')
+    resizable = false
+  }
   
 </script>
 
 <!-- <div style={frame.style} class='frame'>
 </div> -->
 
-<div  class='frame'
-style={calculateStyle(frame)}
+<div class={`frame ${addedClass}`}
 draggable='true'
-on:dragstart|self={event => {
+style={frame.style}
+on:dragover="{event => handleDragMove(event)}"
+on:dragstart="{event => {
   // console.log('dragging frame')
   offset = handleDragStartMove(event)
-}}
+}}"
 >
 </div>
-<!-- on:dragover|preventDefault|self={event => handleDragMove(event)} -->
 
 <div class='handle handle-tleft' draggable='true'
 style={calculateStyle(frame, 'tleft')}
@@ -205,97 +208,98 @@ on:dragstart={event => offset = handleDragStartResize(event, 'bleft')}
 on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 ></div>
 
-<div class='handle handle-bright' draggable='true'
-style={calculateStyle(frame, 'bright')}
-on:dragstart="{event => forward(frame,event, 'bright')}"
-on:dragover="{event => console.log(event)}"
-on:dragenter="{event => console.log(event)}"
-on:mousedown="{event => //setActive()
-null }"
-on:mouseup="{event => //setInactive()
-null }"
-on:mousemove={event => {
-  // e.preventDefault()
-  // if (resizable) {
-  // forward(frame,event,'bright')
-  // }
-}}
-></div>
-<!-- on:mouseleave="{event => setInactive()}" -->
-<!-- on:dragstart={event => offset = handleDragStartResize(event, 'bright')}
-  on:dragover={event => handleDragResize(event, 'bright')}
-  on:dragleave|preventDefault={event => handleDragResize(event, 'bright')} -->
+<!-- on:dragstart="{event => null}"
+  on:dragover="{event => console.log(event)}"
+  on:dragenter="{event => console.log(event)}" -->
+  <div class='handle handle-bright'
+  style={calculateStyle(frame, 'bright')}
+  on:mousedown="{event => {
+      forward(frame,event,'bright')
+    // setActive()
+    }}"
+  ></div>
+  <!-- on:mouseup="{event => setInactive()}"
+  on:mouseleave="{event => setInactive()}" -->
+  <!-- on:mousemove="{event => {
+    // e.preventDefault()
+    if (resizable) {
+      // console.log(event.movementX)
+      // forward(frame,event,'bright')
+      frame.bottomRightHandle.x += event.movementX
+      frame.width += event.movementX
+      frame.bottomRightHandle.y += event.movementY
+      frame.height += event.movementY
+      frame = moveHandles(frame)
+      frame.style = calculateStyle(frame)
+      console.log(frame.bottomRightHandle)
+    }
+  }}" -->
   
-  <!-- on:drop|preventDefault|stopPropagation={event => handleDragResizeDrop(event)} -->
-  
-  <!-- <div class='resize-button'> -->
-    <!-- <Fab>Resize</Fab> -->
-    <!-- </div> -->
-    <!-- <img alt='reference' src={frame.url} > -->
+  <style lang='scss'>
+    @mixin wh100 {
+      width:100%;
+      height:100%;
+    }
     
-    <style lang='scss'>
-      @mixin wh100 {
-        width:100%;
-        height:100%;
-      }
-      
-      @mixin wh50 {
-        width:20px;
-        height:20px;
-      }
-      
-      @mixin handle {
-        // z-index: 10;
-        position: fixed;
-        // margin:50px;
-        // border:60px solid hsla(0,0%,0%,0.0);
-        // box-sizing:border-box;
-      }
-      
-      .frame {
-        height:400px;
-        width:400px;
-        // display:block;
-        background-size: contain;
-        background-repeat: no-repeat;
-      }
-      
-      .resize-handles-frame {
-        @include wh100;
-        display:grid;
-        grid-template-columns: 5% 90% 5%;
-        grid-template-rows: 5% 90% 5%;
-        grid-template-areas:
-        'tleft top tright'
-        'left center right'
-        'bleft bottom bright';
-        // width:100%;
-        // height:100%;
-        border: thin solid cyan
-      }
-      
-      .handle-tleft {
-        @include handle;
-        // grid-area: left;
-        background-color: deepskyblue;
-        @include wh50;
-      }
-      .handle-tright {
-        @include handle;
-        // grid-area: right;
-        background-color: deeppink;
-        @include wh50;
-      }
-      .handle-bright {
-        @include handle;
-        @include wh50;
-        // grid-area: bright;
-        background-color: silver;
-      }  
-      .handle-bleft {
-        @include handle;
-        @include wh50;
-        // grid-area: bright;
-        background-color: silver;
-      }  
-    </style>
+    @mixin wh50 {
+      width:20px;
+      height:20px;
+    }
+    
+    @mixin handle {
+      // z-index: 10;
+      position: fixed;
+      // margin:50px;
+      // border:60px solid hsla(0,0%,0%,0.0);
+      // box-sizing:border-box;
+    }
+    
+    .frame {
+      height:400px;
+      height:fit-content;
+      width:400px;
+      width:fit-content;
+      // display:block;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    
+    .resize-handles-frame {
+      @include wh100;
+      display:grid;
+      grid-template-columns: 5% 90% 5%;
+      grid-template-rows: 5% 90% 5%;
+      grid-template-areas:
+      'tleft top tright'
+      'left center right'
+      'bleft bottom bright';
+      // width:100%;
+      // height:100%;
+      border: thin solid cyan
+    }
+    
+    .handle-tleft {
+      @include handle;
+      // grid-area: left;
+      background-color: deepskyblue;
+      @include wh50;
+    }
+    .handle-tright {
+      @include handle;
+      // grid-area: right;
+      background-color: deeppink;
+      @include wh50;
+    }
+    .handle-bright {
+      @include handle;
+      @include wh50;
+      // grid-area: bright;
+      background-color: silver;
+    }  
+    .handle-bleft {
+      @include handle;
+      @include wh50;
+      // grid-area: bright;
+      background-color: silver;
+    }  
+  </style>
