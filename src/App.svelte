@@ -9,12 +9,19 @@
 		let offset = []
 		let currentFrame
 
+		let defaultHandle =
+		{ width: 20
+		, height: 20
+		, x: 0
+		, y: 0
+		}
+
 	let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg')
 		
 	frameList.push(init)
 
 		const handleDragStart = (event, frameid) => {
-			console.log(frameid)
+			// console.log(frameid)
 			event.dataTransfer.setData('frame id', frameid)
 			event.dataTransfer.dropEffect = 'move'
 			coords.x = event.clientX
@@ -27,13 +34,13 @@
 			coords.x = event.clientX
 			coords.y = event.clientY
 			let id = event.dataTransfer.getData('frame id')
-			console.log(id)
+			// console.log(id)
 			let corner = [frameList[id].x, frameList[id].y] //top left
 			frameList[id].x = coords.x - offset[0]
 			frameList[id].y = coords.y - offset[1]
 			frameList[id].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px;`
-			console.log(frameList[id].style)
-			console.log(coords, offset, corner)
+			// console.log(frameList[id].style)
+			// console.log(coords, offset, corner)
 			return false
 		}
 		/*
@@ -56,22 +63,22 @@
 		const drop = (event, coords) => {
 			if (!event.dataTransfer.getData('frame id')){
 				let data = event.dataTransfer.getData('text')
-				console.log(event)
-				console.log('drop')
+				// console.log(event)
+				// console.log('drop')
 				let newFrame = buildFrame(data)
 				newFrame.x = event.clientX
 				newFrame.y = event.clientY
 				newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`
 				data ? frameList = [...frameList, newFrame] : null
-				console.log(frameList)
-				console.log(newFrame.style)
+				// console.log(frameList)
+				// console.log(newFrame.style)
 			}
 			if (event.dataTransfer.dropEffect == 'move') {
 				let id = event.dataTransfer.getData('frame id')
 				// frameList[id].x = coords.x - frameList[id].x
 				// frameList[id].y = coords.y - frameList[id].y
-				console.log(event.dataTransfer.getData('frame id'))
-				console.log(coords)
+				// console.log(event.dataTransfer.getData('frame id'))
+				// console.log(coords)
 			}
 		}
 		
@@ -93,16 +100,22 @@
 			console.log(frameList)
 			console.log(newFrame.style)
 		}
+
+		
 		
 		function buildFrame (data):FrameT {
 			let frame =
 			{ url: data
-				, width: 200
-				,	height: 200
+				, width: 400
+				,	height: 400
 				, x: 0
 				, y: 0
 				, style: ``
 				, id: id
+				, topLeftHandle: defaultHandle
+				, topRightHandle: {...defaultHandle, x : 380}
+				, bottomRightHandle: {...defaultHandle, x : 380, y : 380}
+				, bottomLeftHandle: {...defaultHandle, y : 380}
 			}
 			
 			id = id + 1
@@ -117,6 +130,7 @@
 		<!-- <p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p> -->
 		<!-- on:dragover|preventDefault={event => dragOver(event)} -->
 		<div id='dropzone'
+		on:dragover|preventDefault
 		on:drop|preventDefault={event => drop(event, coords)}
 		on:paste={event => paste(event)}
 		>
@@ -124,10 +138,7 @@
 		{#if frameList.length !== 0}
 		{#each frameList as frame}
 		<!-- <div on:dragstart={event => offset = handleDragStart(event, frame.id)}> -->
-			<div>
 			<Frame frame={frame}></Frame>
-
-		</div>
 		{/each}
 		{/if}
 	</div>
