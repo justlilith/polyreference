@@ -194,6 +194,20 @@ var app = (function () {
             throw new Error('Function called outside component initialization');
         return current_component;
     }
+    function createEventDispatcher() {
+        const component = get_current_component();
+        return (type, detail) => {
+            const callbacks = component.$$.callbacks[type];
+            if (callbacks) {
+                // TODO are there situations where events could be dispatched
+                // in a server (non-DOM) environment?
+                const event = custom_event(type, detail);
+                callbacks.slice().forEach(fn => {
+                    fn.call(component, event);
+                });
+            }
+        };
+    }
     function setContext(key, context) {
         get_current_component().$$.context.set(key, context);
     }
@@ -2749,26 +2763,26 @@ var app = (function () {
     			div3 = element("div");
     			t3 = space();
     			div4 = element("div");
-    			attr_dev(div0, "class", "frame svelte-1q8ndiw");
+    			attr_dev(div0, "class", "frame svelte-8szluu");
     			attr_dev(div0, "style", div0_style_value = /*calculateStyle*/ ctx[5](/*frame*/ ctx[0]));
     			attr_dev(div0, "draggable", "true");
-    			add_location(div0, file$1, 135, 0, 5712);
-    			attr_dev(div1, "class", "handle handle-tleft svelte-1q8ndiw");
+    			add_location(div0, file$1, 155, 0, 6152);
+    			attr_dev(div1, "class", "handle handle-tleft svelte-8szluu");
     			attr_dev(div1, "draggable", "true");
     			attr_dev(div1, "style", div1_style_value = /*calculateStyle*/ ctx[5](/*frame*/ ctx[0], 'tleft'));
-    			add_location(div1, file$1, 146, 0, 5980);
-    			attr_dev(div2, "class", "handle handle-tright svelte-1q8ndiw");
+    			add_location(div1, file$1, 166, 0, 6420);
+    			attr_dev(div2, "class", "handle handle-tright svelte-8szluu");
     			attr_dev(div2, "draggable", "true");
     			attr_dev(div2, "style", div2_style_value = /*calculateStyle*/ ctx[5](/*frame*/ ctx[0], 'tright'));
-    			add_location(div2, file$1, 151, 0, 6153);
-    			attr_dev(div3, "class", "handle handle-bleft svelte-1q8ndiw");
+    			add_location(div2, file$1, 171, 0, 6593);
+    			attr_dev(div3, "class", "handle handle-bleft svelte-8szluu");
     			attr_dev(div3, "draggable", "true");
     			attr_dev(div3, "style", div3_style_value = /*calculateStyle*/ ctx[5](/*frame*/ ctx[0], 'bleft'));
-    			add_location(div3, file$1, 157, 0, 6385);
-    			attr_dev(div4, "class", "handle handle-bright svelte-1q8ndiw");
+    			add_location(div3, file$1, 177, 0, 6825);
+    			attr_dev(div4, "class", "handle handle-bright svelte-8szluu");
     			attr_dev(div4, "draggable", "true");
     			attr_dev(div4, "style", div4_style_value = /*calculateStyle*/ ctx[5](/*frame*/ ctx[0], 'bright'));
-    			add_location(div4, file$1, 163, 0, 6631);
+    			add_location(div4, file$1, 183, 0, 7071);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2786,14 +2800,17 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div0, "dragstart", self(/*dragstart_handler*/ ctx[6]), false, false, false),
-    					listen_dev(div1, "dragstart", /*dragstart_handler_1*/ ctx[7], false, false, false),
-    					listen_dev(div2, "dragstart", /*dragstart_handler_2*/ ctx[8], false, false, false),
-    					listen_dev(div3, "dragstart", /*dragstart_handler_3*/ ctx[9], false, false, false),
-    					listen_dev(div3, "dragover", prevent_default(/*dragover_handler*/ ctx[10]), false, true, false),
-    					listen_dev(div4, "dragstart", /*dragstart_handler_4*/ ctx[11], false, false, false),
-    					listen_dev(div4, "dragover", /*dragover_handler_1*/ ctx[12], false, false, false),
-    					listen_dev(div4, "dragleave", prevent_default(/*dragleave_handler*/ ctx[13]), false, true, false)
+    					listen_dev(div0, "dragstart", self(/*dragstart_handler*/ ctx[8]), false, false, false),
+    					listen_dev(div1, "dragstart", /*dragstart_handler_1*/ ctx[9], false, false, false),
+    					listen_dev(div2, "dragstart", /*dragstart_handler_2*/ ctx[10], false, false, false),
+    					listen_dev(div3, "dragstart", /*dragstart_handler_3*/ ctx[11], false, false, false),
+    					listen_dev(div3, "dragover", prevent_default(/*dragover_handler*/ ctx[12]), false, true, false),
+    					listen_dev(div4, "dragstart", /*dragstart_handler_4*/ ctx[13], false, false, false),
+    					listen_dev(div4, "dragover", /*dragover_handler_1*/ ctx[14], false, false, false),
+    					listen_dev(div4, "dragenter", /*dragenter_handler*/ ctx[15], false, false, false),
+    					listen_dev(div4, "mousedown", mousedown_handler, false, false, false),
+    					listen_dev(div4, "mouseup", mouseup_handler, false, false, false),
+    					listen_dev(div4, "mousemove", mousemove_handler, false, false, false)
     				];
 
     				mounted = true;
@@ -2848,7 +2865,7 @@ var app = (function () {
     	return block;
     }
 
-    function moveHandles(frame) {
+    function moveHandles$1(frame) {
     	frame.topLeftHandle.x = frame.x;
     	frame.topLeftHandle.y = frame.y;
     	frame.topRightHandle.x = frame.x + frame.width - frame.topRightHandle.width;
@@ -2860,13 +2877,26 @@ var app = (function () {
     	return frame;
     }
 
+    const mousedown_handler = event => //setActive()
+    null;
+
+    const mouseup_handler = event => //setInactive()
+    null;
+
+    const mousemove_handler = event => {
+    	
+    }; // e.preventDefault()
+    // if (resizable) {
+
     function instance$1($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Frame', slots, []);
     	let { frame } = $$props;
+    	let { style } = $$props;
     	let coords = { x: 0, y: 0 };
     	let offset = [0, 0];
     	let topCorner = [0, 0];
+    	let resizable = false;
     	let styleConstant = ` background-image: url('${frame.url}');`;
     	let dimensionalConstant = ` width: ${frame.width}px; height: ${frame.height}px;`;
 
@@ -2908,7 +2938,7 @@ var app = (function () {
 
     		// console.log(id)
     		// console.log(frame.style)
-    		moveHandles(frame);
+    		moveHandles$1(frame);
 
     		return false;
     	};
@@ -2927,11 +2957,9 @@ var app = (function () {
 
     	const handleDragResize = (event, edge) => {
     		event = event || window.event;
-
-    		// console.log(event)
-    		coords.x = event.offsetX;
-
-    		coords.y = event.offsetY;
+    		console.log(event);
+    		coords.x = event.movementX;
+    		coords.y = event.movementY;
 
     		// let id = event.dataTransfer.getData('frame id')
     		// let corner = {x: frame.x, y: frame.y} //top left
@@ -2939,26 +2967,19 @@ var app = (function () {
     		// console.log(coords)
     		switch (edge) {
     			case 'bright':
-    				$$invalidate(
-    					0,
-    					frame.width = coords.x > 0
-    					? coords.x + frame.width
-    					: frame.width - coords.x,
-    					frame
-    				);
-    				$$invalidate(0, frame.height = coords.y + frame.height, frame);
+    				$$invalidate(0, frame.width = frame.width + coords.x, frame);
+    				$$invalidate(0, frame.height = frame.height + coords.y, frame);
     				// frame.width += event.offsetX
     				// let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
     				// frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
-    				// console.log(frame.width, frame.height)
+    				console.log(frame.width, frame.height);
     				break;
     			default:
     				return;
     		}
 
-    		$$invalidate(0, frame.style = calculateStyle(frame), frame);
-    		$$invalidate(0, frame = moveHandles(frame));
-    	};
+    		$$invalidate(0, frame = moveHandles$1(frame));
+    	}; // frame.style = calculateStyle(frame)
 
     	const handleDragResizeDrop = event => {
     		let dimensionalConstant = ` width: ${frame.width}px; height: ${frame.height}px;`;
@@ -3011,7 +3032,27 @@ var app = (function () {
     		return style;
     	};
 
-    	const writable_props = ['frame'];
+    	/*
+    https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg
+    */
+    	const dispatch = createEventDispatcher();
+
+    	function forward(frame, event, edge) {
+    		console.log('send');
+    		dispatch('message', { frame, event, edge });
+    	}
+
+    	const setActive = () => {
+    		// console.log('well')
+    		resizable = true;
+    	};
+
+    	const setInactive = () => {
+    		// console.log('nevermind')
+    		resizable = false;
+    	};
+
+    	const writable_props = ['frame', 'style'];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$1.warn(`<Frame> was created with unknown prop '${key}'`);
@@ -3026,20 +3067,24 @@ var app = (function () {
     	const dragstart_handler_2 = event => $$invalidate(1, offset = handleDragStartResize(event));
     	const dragstart_handler_3 = event => $$invalidate(1, offset = handleDragStartResize(event));
     	const dragover_handler = event => handleDragResize(event, 'bleft');
-    	const dragstart_handler_4 = event => $$invalidate(1, offset = handleDragStartResize(event));
-    	const dragover_handler_1 = event => handleDragResize(event, 'bright');
-    	const dragleave_handler = event => handleDragResize(event, 'bright');
+    	const dragstart_handler_4 = event => forward(frame, event, 'bright');
+    	const dragover_handler_1 = event => console.log(event);
+    	const dragenter_handler = event => console.log(event);
 
     	$$self.$$set = $$props => {
     		if ('frame' in $$props) $$invalidate(0, frame = $$props.frame);
+    		if ('style' in $$props) $$invalidate(7, style = $$props.style);
     	};
 
     	$$self.$capture_state = () => ({
     		Fab,
+    		createEventDispatcher,
     		frame,
+    		style,
     		coords,
     		offset,
     		topCorner,
+    		resizable,
     		styleConstant,
     		dimensionalConstant,
     		handleDragStartMove,
@@ -3048,14 +3093,20 @@ var app = (function () {
     		handleDragResize,
     		handleDragResizeDrop,
     		calculateStyle,
-    		moveHandles
+    		moveHandles: moveHandles$1,
+    		dispatch,
+    		forward,
+    		setActive,
+    		setInactive
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('frame' in $$props) $$invalidate(0, frame = $$props.frame);
+    		if ('style' in $$props) $$invalidate(7, style = $$props.style);
     		if ('coords' in $$props) coords = $$props.coords;
     		if ('offset' in $$props) $$invalidate(1, offset = $$props.offset);
     		if ('topCorner' in $$props) topCorner = $$props.topCorner;
+    		if ('resizable' in $$props) resizable = $$props.resizable;
     		if ('styleConstant' in $$props) styleConstant = $$props.styleConstant;
     		if ('dimensionalConstant' in $$props) dimensionalConstant = $$props.dimensionalConstant;
     	};
@@ -3071,6 +3122,8 @@ var app = (function () {
     		handleDragStartResize,
     		handleDragResize,
     		calculateStyle,
+    		forward,
+    		style,
     		dragstart_handler,
     		dragstart_handler_1,
     		dragstart_handler_2,
@@ -3078,14 +3131,14 @@ var app = (function () {
     		dragover_handler,
     		dragstart_handler_4,
     		dragover_handler_1,
-    		dragleave_handler
+    		dragenter_handler
     	];
     }
 
     class Frame extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$1, create_fragment$1, safe_not_equal, { frame: 0 });
+    		init(this, options, instance$1, create_fragment$1, safe_not_equal, { frame: 0, style: 7 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -3100,6 +3153,10 @@ var app = (function () {
     		if (/*frame*/ ctx[0] === undefined && !('frame' in props)) {
     			console_1$1.warn("<Frame> was created without expected prop 'frame'");
     		}
+
+    		if (/*style*/ ctx[7] === undefined && !('style' in props)) {
+    			console_1$1.warn("<Frame> was created without expected prop 'style'");
+    		}
     	}
 
     	get frame() {
@@ -3107,6 +3164,14 @@ var app = (function () {
     	}
 
     	set frame(value) {
+    		throw new Error("<Frame>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get style() {
+    		throw new Error("<Frame>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set style(value) {
     		throw new Error("<Frame>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -3118,11 +3183,11 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[17] = list[i];
+    	child_ctx[29] = list[i];
     	return child_ctx;
     }
 
-    // (121:2) {#if frameList.length !== 0}
+    // (240:2) {#if frameList.length !== 0}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -3155,7 +3220,7 @@ var app = (function () {
     			current = true;
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*frameList*/ 1) {
+    			if (dirty[0] & /*frameList, currentFrame, currentEdge*/ 13) {
     				each_value = /*frameList*/ ctx[0];
     				validate_each_argument(each_value);
     				let i;
@@ -3211,22 +3276,27 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(121:2) {#if frameList.length !== 0}",
+    		source: "(240:2) {#if frameList.length !== 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (122:2) {#each frameList as frame}
+    // (241:2) {#each frameList as frame}
     function create_each_block(ctx) {
     	let frame;
     	let current;
 
     	frame = new Frame({
-    			props: { frame: /*frame*/ ctx[17] },
+    			props: {
+    				style: /*frame*/ ctx[29].style,
+    				frame: /*frame*/ ctx[29]
+    			},
     			$$inline: true
     		});
+
+    	frame.$on("message", /*message_handler*/ ctx[11]);
 
     	const block = {
     		c: function create() {
@@ -3238,7 +3308,8 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const frame_changes = {};
-    			if (dirty & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[17];
+    			if (dirty[0] & /*frameList*/ 1) frame_changes.style = /*frame*/ ctx[29].style;
+    			if (dirty[0] & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[29];
     			frame.$set(frame_changes);
     		},
     		i: function intro(local) {
@@ -3259,7 +3330,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(122:2) {#each frameList as frame}",
+    		source: "(241:2) {#each frameList as frame}",
     		ctx
     	});
 
@@ -3280,10 +3351,10 @@ var app = (function () {
     			div = element("div");
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
-    			attr_dev(div, "class", "svelte-3bx8l5");
-    			add_location(div, file, 114, 2, 4081);
-    			attr_dev(main, "class", "svelte-3bx8l5");
-    			add_location(main, file, 110, 1, 3828);
+    			attr_dev(div, "class", "svelte-49fh7v");
+    			add_location(div, file, 227, 2, 8553);
+    			attr_dev(main, "class", "svelte-49fh7v");
+    			add_location(main, file, 214, 1, 7979);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -3296,20 +3367,23 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div, "dragover", prevent_default(/*dragover_handler*/ ctx[5]), false, true, false),
-    					listen_dev(div, "drop", prevent_default(/*drop_handler*/ ctx[6]), false, true, false),
-    					listen_dev(div, "paste", /*paste_handler*/ ctx[7], false, false, false)
+    					listen_dev(div, "mousedown", /*mousedown_handler*/ ctx[12], false, false, false),
+    					listen_dev(div, "mouseup", /*mouseup_handler*/ ctx[13], false, false, false),
+    					listen_dev(div, "dragover", /*dragover_handler*/ ctx[14], false, false, false),
+    					listen_dev(div, "drop", prevent_default(/*drop_handler*/ ctx[15]), false, true, false),
+    					listen_dev(div, "paste", /*paste_handler*/ ctx[16], false, false, false),
+    					listen_dev(div, "mousemove", /*mousemove_handler*/ ctx[17], false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
-    		p: function update(ctx, [dirty]) {
+    		p: function update(ctx, dirty) {
     			if (/*frameList*/ ctx[0].length !== 0) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
 
-    					if (dirty & /*frameList*/ 1) {
+    					if (dirty[0] & /*frameList*/ 1) {
     						transition_in(if_block, 1);
     					}
     				} else {
@@ -3356,6 +3430,18 @@ var app = (function () {
     	return block;
     }
 
+    function moveHandles(frame) {
+    	frame.topLeftHandle.x = frame.x;
+    	frame.topLeftHandle.y = frame.y;
+    	frame.topRightHandle.x = frame.x + frame.width - frame.topRightHandle.width;
+    	frame.topRightHandle.y = frame.y;
+    	frame.bottomLeftHandle.x = frame.x;
+    	frame.bottomLeftHandle.y = frame.y + frame.height - frame.bottomLeftHandle.height;
+    	frame.bottomRightHandle.x = frame.x + frame.width - frame.bottomRightHandle.width;
+    	frame.bottomRightHandle.y = frame.y + frame.height - frame.bottomRightHandle.height;
+    	return frame;
+    }
+
     function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('App', slots, []);
@@ -3365,6 +3451,7 @@ var app = (function () {
     	let coords = { x: 0, y: 0 };
     	let offset = [];
     	let currentFrame;
+    	let currentEdge;
     	let defaultHandle = { width: 20, height: 20, x: 0, y: 0 };
     	let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg');
     	frameList.push(init);
@@ -3409,8 +3496,8 @@ var app = (function () {
     x [9,5] -> [2,1] ([0,0])
     */
     	const trackMouse = event => {
-    		$$invalidate(1, coords.x = event.clientX, coords);
-    		$$invalidate(1, coords.y = event.clientY, coords);
+    		$$invalidate(1, coords.x = event.movementX, coords);
+    		$$invalidate(1, coords.y = event.movementY, coords);
     	};
 
     	const drop = (event, coords) => {
@@ -3494,31 +3581,151 @@ var app = (function () {
     		return frame;
     	}
 
+    	let resizable = false;
+
+    	const setActive = () => {
+    		console.log('well');
+    		resizable = true;
+    	};
+
+    	const setInactive = () => {
+    		console.log('nevermind');
+    		resizable = false;
+    	};
+
+    	const dispatch = createEventDispatcher();
+
+    	const forward = message => {
+    		dispatch(message);
+    	};
+
+    	const resize = (event, frameId, edge) => {
+    		// console.log('okay')
+    		// let edge = message.detail?.edge
+    		// let event = message.detail?.event
+    		// let id = message.detail?.frame?.id
+    		let frame = frameList[frameId];
+
+    		// console.log(event)
+    		// coords.x = event.movementX
+    		// coords.y = event.movementY
+    		// coords.x = event.clientX - frame.x
+    		// coords.y = event.clientY - frame.y
+    		// let id = event.dataTransfer.getData('frame id')
+    		// let corner = {x: frame.x, y: frame.y} //top left
+    		// console.log(edge)
+    		// console.log(coords)
+    		switch (edge) {
+    			case 'bright':
+    				frame.width += coords.x;
+    				frame.height += coords.y;
+    				// event.target.top = event.pageY
+    				// frame.bottomRightHandle.x += coords.x
+    				// frame.bottomRightHandle.y += coords.y
+    				// frame.width += event.offsetX
+    				// let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
+    				// frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
+    				console.log(frame.width, frame.height);
+    				break;
+    			default:
+    				return;
+    		}
+
+    		frame = moveHandles(frame);
+
+    		// frame.style = calculateStyle(frame)
+    		console.log(frame.style);
+    	}; // }
+
+    	const calculateStyle = (frame, corner) => {
+    		let style = "";
+    		let addedStyle;
+    		let width = frame.topRightHandle.x + frame.topRightHandle.width - frame.topLeftHandle.x;
+    		let height = frame.bottomLeftHandle.y + frame.bottomLeftHandle.height - frame.topLeftHandle.y;
+
+    		if (corner) {
+    			switch (corner) {
+    				case 'tleft':
+    					width = frame.topLeftHandle.width;
+    					height = frame.topLeftHandle.height;
+    					addedStyle = ` top: ${frame.topLeftHandle.y}px; left: ${frame.topLeftHandle.x}px;`;
+    					break;
+    				case 'tright':
+    					width = frame.topRightHandle.width;
+    					height = frame.topRightHandle.height;
+    					addedStyle = ` top: ${frame.topRightHandle.y}px; left: ${frame.topRightHandle.x}px;`;
+    					break;
+    				case 'bleft':
+    					width = frame.bottomLeftHandle.width;
+    					height = frame.bottomLeftHandle.height;
+    					addedStyle = ` top: ${frame.bottomLeftHandle.y}px; left: ${frame.bottomLeftHandle.x}px;`;
+    					break;
+    				case 'bright':
+    					width = frame.bottomRightHandle.width;
+    					height = frame.bottomRightHandle.height;
+    					addedStyle = ` top: ${frame.bottomRightHandle.y}px; left: ${frame.bottomRightHandle.x}px;`;
+    					break;
+    				default:
+    					return;
+    			}
+    		}
+
+    		style = `width: ${width}px; height: ${height}px; position: fixed;`;
+
+    		if (!corner) {
+    			style = style + ` background-image: url('${frame.url}'); top: ${frame.y}px; left: ${frame.x}px;`;
+    		}
+
+    		if (corner) {
+    			style = style + addedStyle;
+    		}
+
+    		return style;
+    	};
+
     	const writable_props = ['name'];
 
     	Object_1.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	function dragover_handler(event) {
-    		bubble.call(this, $$self, event);
-    	}
+    	const message_handler = message => {
+    		$$invalidate(2, currentFrame = message);
+    		console.log('ayy');
+    		$$invalidate(2, currentFrame = currentFrame?.detail?.frame.id);
+    		$$invalidate(3, currentEdge = message);
+    		$$invalidate(3, currentEdge = currentEdge?.detail?.edge);
+    		console.log(currentEdge);
+    	};
+
+    	const mousedown_handler = event => setActive();
+    	const mouseup_handler = event => setInactive();
+
+    	const dragover_handler = event => {
+    		// console.log(event.movementX)
+    		resize(event, currentFrame, currentEdge);
+
+    		return false;
+    	};
 
     	const drop_handler = event => drop(event, coords);
     	const paste_handler = event => paste(event);
+    	const mousemove_handler = event => trackMouse(event);
 
     	$$self.$$set = $$props => {
-    		if ('name' in $$props) $$invalidate(4, name = $$props.name);
+    		if ('name' in $$props) $$invalidate(10, name = $$props.name);
     	};
 
     	$$self.$capture_state = () => ({
     		Frame,
+    		createEventDispatcher,
     		name,
     		frameList,
     		id,
     		coords,
     		offset,
     		currentFrame,
+    		currentEdge,
     		defaultHandle,
     		init,
     		handleDragStart,
@@ -3526,18 +3733,28 @@ var app = (function () {
     		trackMouse,
     		drop,
     		paste,
-    		buildFrame
+    		buildFrame,
+    		resizable,
+    		setActive,
+    		setInactive,
+    		dispatch,
+    		forward,
+    		resize,
+    		moveHandles,
+    		calculateStyle
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('name' in $$props) $$invalidate(4, name = $$props.name);
+    		if ('name' in $$props) $$invalidate(10, name = $$props.name);
     		if ('frameList' in $$props) $$invalidate(0, frameList = $$props.frameList);
     		if ('id' in $$props) id = $$props.id;
     		if ('coords' in $$props) $$invalidate(1, coords = $$props.coords);
     		if ('offset' in $$props) offset = $$props.offset;
-    		if ('currentFrame' in $$props) currentFrame = $$props.currentFrame;
+    		if ('currentFrame' in $$props) $$invalidate(2, currentFrame = $$props.currentFrame);
+    		if ('currentEdge' in $$props) $$invalidate(3, currentEdge = $$props.currentEdge);
     		if ('defaultHandle' in $$props) defaultHandle = $$props.defaultHandle;
     		if ('init' in $$props) init = $$props.init;
+    		if ('resizable' in $$props) resizable = $$props.resizable;
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -3547,19 +3764,29 @@ var app = (function () {
     	return [
     		frameList,
     		coords,
+    		currentFrame,
+    		currentEdge,
+    		trackMouse,
     		drop,
     		paste,
+    		setActive,
+    		setInactive,
+    		resize,
     		name,
+    		message_handler,
+    		mousedown_handler,
+    		mouseup_handler,
     		dragover_handler,
     		drop_handler,
-    		paste_handler
+    		paste_handler,
+    		mousemove_handler
     	];
     }
 
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { name: 4 });
+    		init(this, options, instance, create_fragment, safe_not_equal, { name: 10 }, null, [-1, -1]);
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -3571,7 +3798,7 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*name*/ ctx[4] === undefined && !('name' in props)) {
+    		if (/*name*/ ctx[10] === undefined && !('name' in props)) {
     			console_1.warn("<App> was created without expected prop 'name'");
     		}
     	}

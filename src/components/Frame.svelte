@@ -1,10 +1,17 @@
 <script lang='ts'>
   import Fab from '@smui/fab'
+  import { createEventDispatcher } from 'svelte'
+  
+  
   export let frame:FrameT
+
+  export let style:string
   
   let coords = { x:0, y:0}
   let offset = [0,0]
   let topCorner = [0,0]
+  
+  let resizable:boolean = false
   
   let styleConstant:string = ` background-image: url('${frame.url}');`
   let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
@@ -54,27 +61,27 @@
   
   const handleDragResize = (event, edge) => {
     event = event || window.event
-    // console.log(event)
-    coords.x = event.offsetX
-    coords.y = event.offsetY
+    console.log(event)
+    coords.x = event.movementX
+    coords.y = event.movementY
     // let id = event.dataTransfer.getData('frame id')
     // let corner = {x: frame.x, y: frame.y} //top left
     // console.log(edge)
     // console.log(coords)
     switch (edge){
       case 'bright':
-      frame.width = coords.x > 0 ? coords.x + frame.width : frame.width - coords.x
-      frame.height = coords.y + frame.height
+      frame.width = frame.width + coords.x
+      frame.height = frame.height + coords.y
       // frame.width += event.offsetX
       // let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
       // frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
-      // console.log(frame.width, frame.height)
+      console.log(frame.width, frame.height)
       break
       default:
       return
     }
-    frame.style = calculateStyle(frame)
     frame = moveHandles(frame)
+    // frame.style = calculateStyle(frame)
   }
   
   const handleDragResizeDrop = (event) => {
@@ -143,6 +150,28 @@
   /*
   https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg
   */
+  
+  
+  const dispatch = createEventDispatcher()
+  
+  function forward(frame,event,edge){
+    console.log('send')
+    dispatch('message', {
+      frame: frame
+      , event: event
+      , edge: edge
+    })
+  }
+
+  const setActive = () => {
+			// console.log('well')
+			resizable = true
+		}
+		const setInactive = () => {
+			// console.log('nevermind')
+			resizable = false
+		}
+  
 </script>
 
 <!-- <div style={frame.style} class='frame'>
@@ -178,77 +207,95 @@ on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 
 <div class='handle handle-bright' draggable='true'
 style={calculateStyle(frame, 'bright')}
-on:dragstart={event => offset = handleDragStartResize(event, 'bright')}
-on:dragover={event => handleDragResize(event, 'bright')}
-on:dragleave|preventDefault={event => handleDragResize(event, 'bright')}
+on:dragstart="{event => forward(frame,event, 'bright')}"
+on:dragover="{event => console.log(event)}"
+on:dragenter="{event => console.log(event)}"
+on:mousedown="{event => //setActive()
+null }"
+on:mouseup="{event => //setInactive()
+null }"
+on:mousemove={event => {
+  // e.preventDefault()
+  // if (resizable) {
+  // forward(frame,event,'bright')
+  // }
+}}
 ></div>
-<!-- on:drop|preventDefault|stopPropagation={event => handleDragResizeDrop(event)} -->
-
-<!-- <div class='resize-button'> -->
-  <!-- <Fab>Resize</Fab> -->
-  <!-- </div> -->
-  <!-- <img alt='reference' src={frame.url} > -->
+<!-- on:mouseleave="{event => setInactive()}" -->
+<!-- on:dragstart={event => offset = handleDragStartResize(event, 'bright')}
+  on:dragover={event => handleDragResize(event, 'bright')}
+  on:dragleave|preventDefault={event => handleDragResize(event, 'bright')} -->
   
-  <style lang='scss'>
-    @mixin wh100 {
-      width:100%;
-      height:100%;
-    }
+  <!-- on:drop|preventDefault|stopPropagation={event => handleDragResizeDrop(event)} -->
+  
+  <!-- <div class='resize-button'> -->
+    <!-- <Fab>Resize</Fab> -->
+    <!-- </div> -->
+    <!-- <img alt='reference' src={frame.url} > -->
     
-    @mixin wh50 {
-      width:20px;
-      height:20px;
-    }
-    
-    @mixin handle {
-      // z-index: 10;
-      // position: absolute;
-    }
-    
-    .frame {
-      height:400px;
-      width:400px;
-      // display:block;
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-    
-    .resize-handles-frame {
-      @include wh100;
-      display:grid;
-      grid-template-columns: 5% 90% 5%;
-      grid-template-rows: 5% 90% 5%;
-      grid-template-areas:
-      'tleft top tright'
-      'left center right'
-      'bleft bottom bright';
-      // width:100%;
-      // height:100%;
-      border: thin solid cyan
-    }
-    
-    .handle-tleft {
-      @include handle;
-      // grid-area: left;
-      background-color: deepskyblue;
-      @include wh50;
-    }
-    .handle-tright {
-      @include handle;
-      // grid-area: right;
-      background-color: deeppink;
-      @include wh50;
-    }
-    .handle-bright {
-      @include handle;
-      @include wh50;
-      // grid-area: bright;
-      background-color: silver;
-    }  
-    .handle-bleft {
-      @include handle;
-      @include wh50;
-      // grid-area: bright;
-      background-color: silver;
-    }  
-  </style>
+    <style lang='scss'>
+      @mixin wh100 {
+        width:100%;
+        height:100%;
+      }
+      
+      @mixin wh50 {
+        width:20px;
+        height:20px;
+      }
+      
+      @mixin handle {
+        // z-index: 10;
+        position: fixed;
+        // margin:50px;
+        // border:60px solid hsla(0,0%,0%,0.0);
+        // box-sizing:border-box;
+      }
+      
+      .frame {
+        height:400px;
+        width:400px;
+        // display:block;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+      
+      .resize-handles-frame {
+        @include wh100;
+        display:grid;
+        grid-template-columns: 5% 90% 5%;
+        grid-template-rows: 5% 90% 5%;
+        grid-template-areas:
+        'tleft top tright'
+        'left center right'
+        'bleft bottom bright';
+        // width:100%;
+        // height:100%;
+        border: thin solid cyan
+      }
+      
+      .handle-tleft {
+        @include handle;
+        // grid-area: left;
+        background-color: deepskyblue;
+        @include wh50;
+      }
+      .handle-tright {
+        @include handle;
+        // grid-area: right;
+        background-color: deeppink;
+        @include wh50;
+      }
+      .handle-bright {
+        @include handle;
+        @include wh50;
+        // grid-area: bright;
+        background-color: silver;
+      }  
+      .handle-bleft {
+        @include handle;
+        @include wh50;
+        // grid-area: bright;
+        background-color: silver;
+      }  
+    </style>

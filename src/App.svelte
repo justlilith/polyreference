@@ -1,5 +1,7 @@
 <script lang="ts">
 	import Frame from './components/Frame.svelte'
+  import { createEventDispatcher } from 'svelte'
+
 	export let name: string;
 	
 	let frameList:Array<FrameT> = []
@@ -8,18 +10,19 @@
 		let coords = { x:0, y:0}
 		let offset = []
 		let currentFrame
-
+		let currentEdge
+		
 		let defaultHandle =
 		{ width: 20
-		, height: 20
-		, x: 0
-		, y: 0
+			, height: 20
+			, x: 0
+			, y: 0
 		}
-
-	let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg')
 		
-	frameList.push(init)
-
+		let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg')
+		
+		frameList.push(init)
+		
 		const handleDragStart = (event, frameid) => {
 			// console.log(frameid)
 			event.dataTransfer.setData('frame id', frameid)
@@ -56,8 +59,8 @@
 		*/
 		
 		const trackMouse = (event) => {
-			coords.x = event.clientX
-			coords.y = event.clientY
+			coords.x = event.movementX
+			coords.y = event.movementY
 		}
 		
 		const drop = (event, coords) => {
@@ -100,7 +103,7 @@
 			console.log(frameList)
 			console.log(newFrame.style)
 		}
-
+		
 		
 		
 		function buildFrame (data):FrameT {
@@ -123,55 +126,194 @@
 			console.log(frame)
 			return frame
 		}
+		
+		
+		let resizable:boolean = false
+		
+		const setActive = () => {
+			console.log('well')
+			resizable = true
+		}
+		const setInactive = () => {
+			console.log('nevermind')
+			resizable = false
+		}
+
+		const dispatch = createEventDispatcher()
+
+		const forward = (message) => {
+			dispatch(message)
+		}
+		const resize = (event, frameId, edge) => {
+			// console.log('okay')
+			// let edge = message.detail?.edge
+			// let event = message.detail?.event
+			// let id = message.detail?.frame?.id
+			let frame = frameList[frameId]
+			// console.log(frame)
+			// if (resizable == true) {
+				event = event || window.event
+				// console.log(event)
+				// coords.x = event.movementX
+				// coords.y = event.movementY
+				// coords.x = event.clientX - frame.x
+				// coords.y = event.clientY - frame.y
+				// let id = event.dataTransfer.getData('frame id')
+				// let corner = {x: frame.x, y: frame.y} //top left
+				// console.log(edge)
+				// console.log(coords)
+				switch (edge){
+					case 'bright':
+					frame.width += coords.x
+					frame.height += coords.y
+					// event.target.top = event.pageY
+					// frame.bottomRightHandle.x += coords.x
+					// frame.bottomRightHandle.y += coords.y
+					// frame.width += event.offsetX
+					// let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
+					// frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
+					console.log(frame.width, frame.height)
+					break
+					default:
+					return
+				}
+				
+				frame = moveHandles(frame)
+				// frame.style = calculateStyle(frame)
+				console.log(frame.style)
+			// }
+		}
+		
+		function moveHandles (frame:FrameT):FrameT {
+			frame.topLeftHandle.x = frame.x
+			frame.topLeftHandle.y = frame.y
+			frame.topRightHandle.x = frame.x + frame.width - frame.topRightHandle.width
+			frame.topRightHandle.y = frame.y
+			frame.bottomLeftHandle.x = frame.x
+			frame.bottomLeftHandle.y = frame.y + frame.height - frame.bottomLeftHandle.height
+			frame.bottomRightHandle.x = frame.x + frame.width - frame.bottomRightHandle.width
+			frame.bottomRightHandle.y = frame.y + frame.height - frame.bottomRightHandle.height
+			
+			return frame
+		}
+
+		const calculateStyle = (frame:FrameT, corner?:string):string => {
+    let style:string = ""
+    let addedStyle:string
+    let width = (frame.topRightHandle.x + frame.topRightHandle.width) - frame.topLeftHandle.x
+    let height = (frame.bottomLeftHandle.y + frame.bottomLeftHandle.height) - frame.topLeftHandle.y
+    
+    if (corner) {
+      switch (corner) {
+        case 'tleft':
+        width = frame.topLeftHandle.width
+        height = frame.topLeftHandle.height
+        addedStyle = ` top: ${frame.topLeftHandle.y}px; left: ${frame.topLeftHandle.x}px;`
+        break
+        case 'tright':
+        width = frame.topRightHandle.width
+        height = frame.topRightHandle.height
+        addedStyle = ` top: ${frame.topRightHandle.y}px; left: ${frame.topRightHandle.x}px;`
+        break
+        case 'bleft':
+        width = frame.bottomLeftHandle.width
+        height = frame.bottomLeftHandle.height
+        addedStyle = ` top: ${frame.bottomLeftHandle.y}px; left: ${frame.bottomLeftHandle.x}px;`
+        break
+        case 'bright':
+        width = frame.bottomRightHandle.width
+        height = frame.bottomRightHandle.height
+        addedStyle = ` top: ${frame.bottomRightHandle.y}px; left: ${frame.bottomRightHandle.x}px;`
+        break
+        default:
+        return
+      }
+    }
+    
+    style = `width: ${width}px; height: ${height}px; position: fixed;`
+    
+    if (!corner) {
+      style = style + ` background-image: url('${frame.url}'); top: ${frame.y}px; left: ${frame.x}px;` 
+    }
+    if (corner) {
+      style = style + addedStyle
+    }
+    return style
+  }
+
 	</script>
 	
 	<main>
 		<!-- <h1>welcome to polyreference, {name}!</h1> -->
 		<!-- <p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p> -->
 		<!-- on:dragover|preventDefault={event => dragOver(event)} -->
+		<!-- on:mousemove="{event => resize(event, frame, 'bright')}" -->
+		<!-- on:message="{message => {
+			currentFrame = message
+			currentEdge = message
+			currentEdge = currentEdge?.detail?.edge
+			console.log(message)
+			console.log('passthrough')
+			// currentFrame = currentFrame?.detail?.frame.id
+			}}" -->
 		<div id='dropzone'
-		on:dragover|preventDefault
-		on:drop|preventDefault={event => drop(event, coords)}
-		on:paste={event => paste(event)}
+		on:mousedown="{event => setActive()}"
+		on:mouseup="{event => setInactive()}"
+		on:dragover="{event => {
+			// console.log(event.movementX)
+			resize(event, currentFrame, currentEdge)
+			return false
+			}}"
+		on:drop|preventDefault="{event => drop(event, coords)}"
+		on:paste="{event => paste(event)}"
+		on:mousemove="{event => trackMouse(event)}"
 		>
-		<!-- on:mousemove={event => trackMouse(event)} -->
 		{#if frameList.length !== 0}
 		{#each frameList as frame}
 		<!-- <div on:dragstart={event => offset = handleDragStart(event, frame.id)}> -->
-			<Frame frame={frame}></Frame>
-		{/each}
-		{/if}
-	</div>
-</main>
-
-<style>
-	main {
-		text-align: center;
-		/* padding: 1em; */
-		max-width: 240px;
-		margin: 0 auto;
-	}
+			<Frame style={frame.style}
+		on:message="{message => {
+			currentFrame = message
+			console.log('ayy')
+			currentFrame = currentFrame?.detail?.frame.id
+			currentEdge = message
+			currentEdge = currentEdge?.detail?.edge
+			console.log(currentEdge)
+			}}"
+		frame={frame}></Frame>
+			{/each}
+			{/if}
+		</div>
+	</main>
 	
-	#dropzone {
-		width: 100%;
-		height: 100%;
-		position: absolute;
-		/* z-index: -9; */
-		/* border: thin solid cyan; */
-		/* border-style: inset; */
-		background-color: hsl(200,10%,10%);
-	}
-	
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-	
-	@media (min-width: 640px) {
+	<style>
 		main {
-			max-width: none;
+			text-align: center;
+			/* padding: 1em; */
+			max-width: 240px;
+			margin: 0 auto;
 		}
-	}
-</style>
+		
+		#dropzone {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			/* z-index: -9; */
+			/* border: thin solid cyan; */
+			/* border-style: inset; */
+			background-color: hsl(200,10%,10%);
+		}
+		
+		h1 {
+			color: #ff3e00;
+			text-transform: uppercase;
+			font-size: 4em;
+			font-weight: 100;
+		}
+		
+		@media (min-width: 640px) {
+			main {
+				max-width: none;
+			}
+		}
+	</style>
