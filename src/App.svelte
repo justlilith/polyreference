@@ -9,6 +9,9 @@
 		let coords = { x:0, y:0}
 		let offset = []
 		let currentFrame
+		let active = {
+			id: 0
+		}
 		
 		let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg')
 		
@@ -103,6 +106,8 @@
 				, y: 0
 				, style: ``
 				, id: id
+				, active: false
+				, zindex: ''
 			}
 			
 			id = id + 1
@@ -114,6 +119,23 @@
 		let target:Array<HTMLDivElement>=[]
 		let frameOptions = {
 			translate:[0,0]
+		}
+
+		const makeActive = (frame:FrameT) => {
+			frameList = frameList.map(el => {
+				if (el.id == frame.id) {
+					el.zindex = 'top'
+				}
+				else {
+					el.zindex = ''
+				}
+				return el
+			})
+			
+			active = {
+				id: frame.id
+			}
+			return active
 		}
 	</script>
 	
@@ -127,10 +149,11 @@
 		<!-- on:mousemove={event => trackMouse(event)} -->
 		{#if frameList.length !== 0}
 		{#each frameList as frame}
-		<div class='target' bind:this={target[frame.id]}>
+		<div class='frame {frame.zindex}' on:click={e => {active = makeActive(frame)}} bind:this={target[frame.id]}>
 			<!-- <div> -->
 				<Frame frame={frame}></Frame>
 		</div>
+		{#if frame.id == active.id}
 		<Moveable
 		target={target[frame.id]}
     resizable={true}
@@ -162,6 +185,7 @@
 			e.target.style.transform = `translate(${beforeTranslate[0]}px, ${beforeTranslate[1]}px)`;
 		}}
 		/>
+		{/if}
 		{/each}
 		{/if}
 	</div>
@@ -195,6 +219,19 @@
 		text-transform: uppercase;
 		font-size: 4em;
 		font-weight: 100;
+	}
+
+	.frame {
+		height:20vh;
+		width:20vw;
+		position:absolute;
+		top:0px;
+		left:0px;
+	}
+
+	.top {
+		z-index: 10;
+		/* position: relative; */
 	}
 	
 	@media (min-width: 640px) {

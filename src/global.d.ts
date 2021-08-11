@@ -8,4 +8,6 @@ interface FrameT {
   x: number
   y: number
   style: string
+  active: boolean
+  zindex: string
 }

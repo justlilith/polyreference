@@ -22356,13 +22356,13 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[22] = list[i];
-    	child_ctx[23] = list;
-    	child_ctx[24] = i;
+    	child_ctx[25] = list[i];
+    	child_ctx[26] = list;
+    	child_ctx[27] = i;
     	return child_ctx;
     }
 
-    // (114:2) {#if frameList.length !== 0}
+    // (134:2) {#if frameList.length !== 0}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -22395,7 +22395,7 @@ var app = (function () {
     			current = true;
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*target, frameList, frameOptions*/ 13) {
+    			if (dirty & /*target, frameList, frameOptions, active, makeActive*/ 157) {
     				each_value = /*frameList*/ ctx[0];
     				validate_each_argument(each_value);
     				let i;
@@ -22451,33 +22451,21 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(114:2) {#if frameList.length !== 0}",
+    		source: "(134:2) {#if frameList.length !== 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (115:2) {#each frameList as frame}
-    function create_each_block(ctx) {
-    	let div;
-    	let frame;
-    	let frame_1 = /*frame*/ ctx[22];
-    	let t;
+    // (140:2) {#if frame.id == active.id}
+    function create_if_block_1(ctx) {
     	let moveable;
     	let current;
 
-    	frame = new Frame({
-    			props: { frame: /*frame*/ ctx[22] },
-    			$$inline: true
-    		});
-
-    	const assign_div = () => /*div_binding*/ ctx[7](div, frame_1);
-    	const unassign_div = () => /*div_binding*/ ctx[7](null, frame_1);
-
     	moveable = new Moveable$1({
     			props: {
-    				target: /*target*/ ctx[2][/*frame*/ ctx[22].id],
+    				target: /*target*/ ctx[3][/*frame*/ ctx[25].id],
     				resizable: true,
     				draggable: true,
     				keepRatio: true,
@@ -22496,53 +22484,146 @@ var app = (function () {
     			$$inline: true
     		});
 
-    	moveable.$on("dragStart", /*dragStart_handler*/ ctx[8]);
-    	moveable.$on("drag", /*drag_handler*/ ctx[9]);
-    	moveable.$on("resizeStart", /*resizeStart_handler*/ ctx[10]);
-    	moveable.$on("resize", /*resize_handler*/ ctx[11]);
+    	moveable.$on("dragStart", /*dragStart_handler*/ ctx[11]);
+    	moveable.$on("drag", /*drag_handler*/ ctx[12]);
+    	moveable.$on("resizeStart", /*resizeStart_handler*/ ctx[13]);
+    	moveable.$on("resize", /*resize_handler*/ ctx[14]);
+
+    	const block = {
+    		c: function create() {
+    			create_component(moveable.$$.fragment);
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(moveable, target, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const moveable_changes = {};
+    			if (dirty & /*target, frameList*/ 9) moveable_changes.target = /*target*/ ctx[3][/*frame*/ ctx[25].id];
+    			moveable.$set(moveable_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(moveable.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(moveable.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(moveable, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(140:2) {#if frame.id == active.id}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (135:2) {#each frameList as frame}
+    function create_each_block(ctx) {
+    	let div;
+    	let frame;
+    	let div_class_value;
+    	let frame_1 = /*frame*/ ctx[25];
+    	let t;
+    	let if_block_anchor;
+    	let current;
+    	let mounted;
+    	let dispose;
+
+    	frame = new Frame({
+    			props: { frame: /*frame*/ ctx[25] },
+    			$$inline: true
+    		});
+
+    	function click_handler(...args) {
+    		return /*click_handler*/ ctx[9](/*frame*/ ctx[25], ...args);
+    	}
+
+    	const assign_div = () => /*div_binding*/ ctx[10](div, frame_1);
+    	const unassign_div = () => /*div_binding*/ ctx[10](null, frame_1);
+    	let if_block = /*frame*/ ctx[25].id == /*active*/ ctx[2].id && create_if_block_1(ctx);
 
     	const block = {
     		c: function create() {
     			div = element("div");
     			create_component(frame.$$.fragment);
     			t = space();
-    			create_component(moveable.$$.fragment);
-    			attr_dev(div, "class", "target svelte-1iah9o5");
-    			add_location(div, file, 115, 2, 4001);
+    			if (if_block) if_block.c();
+    			if_block_anchor = empty();
+    			attr_dev(div, "class", div_class_value = "frame " + /*frame*/ ctx[25].zindex + " svelte-1vj94jv");
+    			add_location(div, file, 135, 2, 4393);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
     			mount_component(frame, div, null);
     			assign_div();
     			insert_dev(target, t, anchor);
-    			mount_component(moveable, target, anchor);
+    			if (if_block) if_block.m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
     			current = true;
+
+    			if (!mounted) {
+    				dispose = listen_dev(div, "click", click_handler, false, false, false);
+    				mounted = true;
+    			}
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
     			const frame_changes = {};
-    			if (dirty & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[22];
+    			if (dirty & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[25];
     			frame.$set(frame_changes);
 
-    			if (frame_1 !== /*frame*/ ctx[22]) {
+    			if (!current || dirty & /*frameList*/ 1 && div_class_value !== (div_class_value = "frame " + /*frame*/ ctx[25].zindex + " svelte-1vj94jv")) {
+    				attr_dev(div, "class", div_class_value);
+    			}
+
+    			if (frame_1 !== /*frame*/ ctx[25]) {
     				unassign_div();
-    				frame_1 = /*frame*/ ctx[22];
+    				frame_1 = /*frame*/ ctx[25];
     				assign_div();
     			}
 
-    			const moveable_changes = {};
-    			if (dirty & /*target, frameList*/ 5) moveable_changes.target = /*target*/ ctx[2][/*frame*/ ctx[22].id];
-    			moveable.$set(moveable_changes);
+    			if (/*frame*/ ctx[25].id == /*active*/ ctx[2].id) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+
+    					if (dirty & /*frameList, active*/ 5) {
+    						transition_in(if_block, 1);
+    					}
+    				} else {
+    					if_block = create_if_block_1(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			} else if (if_block) {
+    				group_outros();
+
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
+    				});
+
+    				check_outros();
+    			}
     		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(frame.$$.fragment, local);
-    			transition_in(moveable.$$.fragment, local);
+    			transition_in(if_block);
     			current = true;
     		},
     		o: function outro(local) {
     			transition_out(frame.$$.fragment, local);
-    			transition_out(moveable.$$.fragment, local);
+    			transition_out(if_block);
     			current = false;
     		},
     		d: function destroy(detaching) {
@@ -22550,7 +22631,10 @@ var app = (function () {
     			destroy_component(frame);
     			unassign_div();
     			if (detaching) detach_dev(t);
-    			destroy_component(moveable, detaching);
+    			if (if_block) if_block.d(detaching);
+    			if (detaching) detach_dev(if_block_anchor);
+    			mounted = false;
+    			dispose();
     		}
     	};
 
@@ -22558,7 +22642,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(115:2) {#each frameList as frame}",
+    		source: "(135:2) {#each frameList as frame}",
     		ctx
     	});
 
@@ -22579,10 +22663,10 @@ var app = (function () {
     			div = element("div");
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
-    			attr_dev(div, "class", "svelte-1iah9o5");
-    			add_location(div, file, 108, 2, 3772);
-    			attr_dev(main, "class", "svelte-1iah9o5");
-    			add_location(main, file, 105, 1, 3588);
+    			attr_dev(div, "class", "svelte-1vj94jv");
+    			add_location(div, file, 128, 2, 4157);
+    			attr_dev(main, "class", "svelte-1vj94jv");
+    			add_location(main, file, 125, 1, 3970);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -22595,8 +22679,8 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div, "drop", prevent_default(/*drop_handler*/ ctx[12]), false, true, false),
-    					listen_dev(div, "paste", /*paste_handler*/ ctx[13], false, false, false)
+    					listen_dev(div, "drop", prevent_default(/*drop_handler*/ ctx[15]), false, true, false),
+    					listen_dev(div, "paste", /*paste_handler*/ ctx[16], false, false, false)
     				];
 
     				mounted = true;
@@ -22663,6 +22747,7 @@ var app = (function () {
     	let coords = { x: 0, y: 0 };
     	let offset = [];
     	let currentFrame;
+    	let active = { id: 0 };
     	let init = buildFrame('https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg');
     	frameList.push(init);
 
@@ -22780,7 +22865,9 @@ var app = (function () {
     			x: 0,
     			y: 0,
     			style: ``,
-    			id
+    			id,
+    			active: false,
+    			zindex: ''
     		};
 
     		id = id + 1;
@@ -22790,16 +22877,36 @@ var app = (function () {
 
     	let target = [];
     	let frameOptions = { translate: [0, 0] };
+
+    	const makeActive = frame => {
+    		$$invalidate(0, frameList = frameList.map(el => {
+    			if (el.id == frame.id) {
+    				el.zindex = 'top';
+    			} else {
+    				el.zindex = '';
+    			}
+
+    			return el;
+    		}));
+
+    		$$invalidate(2, active = { id: frame.id });
+    		return active;
+    	};
+
     	const writable_props = ['name'];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
+    	const click_handler = (frame, e) => {
+    		$$invalidate(2, active = makeActive(frame));
+    	};
+
     	function div_binding($$value, frame) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
     			target[frame.id] = $$value;
-    			$$invalidate(2, target);
+    			$$invalidate(3, target);
     			$$invalidate(0, frameList);
     		});
     	}
@@ -22809,7 +22916,7 @@ var app = (function () {
     	};
 
     	const drag_handler = ({ detail: e }) => {
-    		$$invalidate(3, frameOptions.translate = e.beforeTranslate, frameOptions);
+    		$$invalidate(4, frameOptions.translate = e.beforeTranslate, frameOptions);
     		e.target.style.transform = `translate(${e.beforeTranslate[0]}px, ${e.beforeTranslate[1]}px)`;
     	};
 
@@ -22820,7 +22927,7 @@ var app = (function () {
 
     	const resize_handler = ({ detail: e }) => {
     		const beforeTranslate = e.drag.beforeTranslate;
-    		$$invalidate(3, frameOptions.translate = beforeTranslate, frameOptions);
+    		$$invalidate(4, frameOptions.translate = beforeTranslate, frameOptions);
     		e.target.style.width = `${e.width}px`;
     		e.target.style.height = `${e.height}px`;
     		e.target.style.transform = `translate(${beforeTranslate[0]}px, ${beforeTranslate[1]}px)`;
@@ -22830,7 +22937,7 @@ var app = (function () {
     	const paste_handler = event => paste(event);
 
     	$$self.$$set = $$props => {
-    		if ('name' in $$props) $$invalidate(6, name = $$props.name);
+    		if ('name' in $$props) $$invalidate(8, name = $$props.name);
     	};
 
     	$$self.$capture_state = () => ({
@@ -22842,6 +22949,7 @@ var app = (function () {
     		coords,
     		offset,
     		currentFrame,
+    		active,
     		init,
     		handleDragStart,
     		dragover,
@@ -22850,19 +22958,21 @@ var app = (function () {
     		paste,
     		buildFrame,
     		target,
-    		frameOptions
+    		frameOptions,
+    		makeActive
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('name' in $$props) $$invalidate(6, name = $$props.name);
+    		if ('name' in $$props) $$invalidate(8, name = $$props.name);
     		if ('frameList' in $$props) $$invalidate(0, frameList = $$props.frameList);
     		if ('id' in $$props) id = $$props.id;
     		if ('coords' in $$props) $$invalidate(1, coords = $$props.coords);
     		if ('offset' in $$props) offset = $$props.offset;
     		if ('currentFrame' in $$props) currentFrame = $$props.currentFrame;
+    		if ('active' in $$props) $$invalidate(2, active = $$props.active);
     		if ('init' in $$props) init = $$props.init;
-    		if ('target' in $$props) $$invalidate(2, target = $$props.target);
-    		if ('frameOptions' in $$props) $$invalidate(3, frameOptions = $$props.frameOptions);
+    		if ('target' in $$props) $$invalidate(3, target = $$props.target);
+    		if ('frameOptions' in $$props) $$invalidate(4, frameOptions = $$props.frameOptions);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -22872,11 +22982,14 @@ var app = (function () {
     	return [
     		frameList,
     		coords,
+    		active,
     		target,
     		frameOptions,
     		drop,
     		paste,
+    		makeActive,
     		name,
+    		click_handler,
     		div_binding,
     		dragStart_handler,
     		drag_handler,
@@ -22890,7 +23003,7 @@ var app = (function () {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { name: 6 });
+    		init(this, options, instance, create_fragment, safe_not_equal, { name: 8 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -22902,7 +23015,7 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*name*/ ctx[6] === undefined && !('name' in props)) {
+    		if (/*name*/ ctx[8] === undefined && !('name' in props)) {
     			console_1.warn("<App> was created without expected prop 'name'");
     		}
     	}
