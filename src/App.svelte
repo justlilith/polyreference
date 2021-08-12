@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { autosave, loadFromLocal } from './components/ts/autosave'
 	
-	export let name: string;
+	// export let name: string;
 	
 	let frameList: Array<FrameT> = [];
 		
