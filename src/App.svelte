@@ -7,6 +7,7 @@
 	
 	let frameList: Array<FrameT> = [];
 		
+		
 		let id = 0;
 		let coords = { x: 0, y: 0 };
 		let offset = [];
@@ -17,13 +18,18 @@
 		
 		let defaultHandle = { width: 20, height: 20, x: 0, y: 0 };
 		
-		let init = buildFrame(
-		"https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg"
-		);
-		
-		frameList.push(init);
-		
 		frameList = loadFromLocal('frameList', frameList)
+		console.log(frameList)
+
+		if (frameList.length == 0){
+			
+			let init = buildFrame(
+			"https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg"
+			);
+			
+			frameList.push(init);
+		}
+		
 		
 		setInterval(() => {
 			autosave(frameList)
@@ -249,10 +255,10 @@
 					switch (event.key) {
 						case 'Delete':
 						case 'Backspace':
-							frameList = frameList.filter(frame => frame.top == false)
-							break
+						frameList = frameList.filter(frame => frame.top == false)
+						break
 						default:
-							break
+						break
 					}
 					// console.log(event)
 				}
@@ -298,7 +304,7 @@
 			>
 			
 			
-			{#if frameList.length !== 0}
+			{#if frameList.length > 0}
 			{#each frameList as frame}
 			<!-- <div on:dragstart={event => offset = handleDragStart(event, frame.id)}> -->
 				<!-- style={frame.style} -->
