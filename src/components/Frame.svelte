@@ -190,19 +190,20 @@ on:dragstart="{event => {
 }}"
 >
 </div>
-
-<div class='handle handle-tleft' draggable='true'
+{#if frame.top}
+  
+<div class={`${addedClass} handle handle-tleft`} draggable='true'
 style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
 ></div>
 
-<div class='handle handle-tright' draggable='true'
+<div class={`${addedClass} handle handle-tright`} draggable='true'
 style={calculateStyle(frame, 'tright')}
 on:dragstart={event => offset = handleDragStartResize(event, 'right')}
 ></div>
 <!-- on:dragover={event => event.preventDefault()} -->
 
-<div class='handle handle-bleft' draggable='true'
+<div class={`${addedClass} handle handle-bleft`} draggable='true'
 style={calculateStyle(frame, 'bleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'bleft')}
 on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
@@ -211,95 +212,107 @@ on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 <!-- on:dragstart="{event => null}"
   on:dragover="{event => console.log(event)}"
   on:dragenter="{event => console.log(event)}" -->
-  <div class='handle handle-bright'
+  <div class={`${addedClass} handle handle-bright`}
   style={calculateStyle(frame, 'bright')}
   on:mousedown="{event => {
-      forward(frame,event,'bright')
+    forward(frame,event,'bright')
     // setActive()
-    }}"
+  }}"
   ></div>
+  {/if}
   <!-- on:mouseup="{event => setInactive()}"
-  on:mouseleave="{event => setInactive()}" -->
-  <!-- on:mousemove="{event => {
-    // e.preventDefault()
-    if (resizable) {
-      // console.log(event.movementX)
-      // forward(frame,event,'bright')
-      frame.bottomRightHandle.x += event.movementX
-      frame.width += event.movementX
-      frame.bottomRightHandle.y += event.movementY
-      frame.height += event.movementY
-      frame = moveHandles(frame)
-      frame.style = calculateStyle(frame)
-      console.log(frame.bottomRightHandle)
-    }
-  }}" -->
-  
-  <style lang='scss'>
-    @mixin wh100 {
-      width:100%;
-      height:100%;
-    }
+    on:mouseleave="{event => setInactive()}" -->
+    <!-- on:mousemove="{event => {
+      // e.preventDefault()
+      if (resizable) {
+        // console.log(event.movementX)
+        // forward(frame,event,'bright')
+        frame.bottomRightHandle.x += event.movementX
+        frame.width += event.movementX
+        frame.bottomRightHandle.y += event.movementY
+        frame.height += event.movementY
+        frame = moveHandles(frame)
+        frame.style = calculateStyle(frame)
+        console.log(frame.bottomRightHandle)
+      }
+    }}" -->
     
-    @mixin wh50 {
-      width:20px;
-      height:20px;
-    }
-    
-    @mixin handle {
-      // z-index: 10;
-      position: fixed;
-      // margin:50px;
-      // border:60px solid hsla(0,0%,0%,0.0);
-      // box-sizing:border-box;
-    }
-    
-    .frame {
-      height:400px;
-      height:fit-content;
-      width:400px;
-      width:fit-content;
-      // display:block;
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-    
-    .resize-handles-frame {
-      @include wh100;
-      display:grid;
-      grid-template-columns: 5% 90% 5%;
-      grid-template-rows: 5% 90% 5%;
-      grid-template-areas:
-      'tleft top tright'
-      'left center right'
-      'bleft bottom bright';
-      // width:100%;
-      // height:100%;
-      border: thin solid cyan
-    }
-    
-    .handle-tleft {
-      @include handle;
-      // grid-area: left;
-      background-color: deepskyblue;
-      @include wh50;
-    }
-    .handle-tright {
-      @include handle;
-      // grid-area: right;
-      background-color: deeppink;
-      @include wh50;
-    }
-    .handle-bright {
-      @include handle;
-      @include wh50;
-      // grid-area: bright;
-      background-color: silver;
-    }  
-    .handle-bleft {
-      @include handle;
-      @include wh50;
-      // grid-area: bright;
-      background-color: silver;
-    }  
-  </style>
+    <style lang='scss'>
+      @mixin wh100 {
+        width:100%;
+        height:100%;
+      }
+      
+      @mixin wh50 {
+        width:20px;
+        height:20px;
+      }
+      
+      @mixin handle {
+        // z-index: 10;
+        position: fixed;
+        // margin:50px;
+        // border:60px solid hsla(0,0%,0%,0.0);
+        // box-sizing:border-box;
+      }
+      
+      .frame {
+        height:400px;
+        height:fit-content;
+        width:400px;
+        width:fit-content;
+        // display:block;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+      
+      .zindexMax {
+        border: thin solid cyan;
+        z-index: 10;
+        position: relative;
+      }
+      
+      .zindexMax.handle {
+        z-index: 15;
+        position: relative;
+      }
+      
+      .resize-handles-frame {
+        @include wh100;
+        display:grid;
+        grid-template-columns: 5% 90% 5%;
+        grid-template-rows: 5% 90% 5%;
+        grid-template-areas:
+        'tleft top tright'
+        'left center right'
+        'bleft bottom bright';
+        // width:100%;
+        // height:100%;
+        border: thin solid cyan
+      }
+      
+      .handle-tleft {
+        @include handle;
+        // grid-area: left;
+        background-color: deepskyblue;
+        @include wh50;
+      }
+      .handle-tright {
+        @include handle;
+        // grid-area: right;
+        background-color: deeppink;
+        @include wh50;
+      }
+      .handle-bright {
+        @include handle;
+        @include wh50;
+        // grid-area: bright;
+        background-color: silver;
+      }  
+      .handle-bleft {
+        @include handle;
+        @include wh50;
+        // grid-area: bright;
+        background-color: silver;
+      }  
+    </style>
