@@ -3,10 +3,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { autosave, loadFromLocal } from './components/ts/autosave'
 	
-	// export let name: string;
-	
-	let frameList: Array<FrameT> = [];
-		
+	let frameList: Array<FrameT>
 		
 		let id = 0;
 		let coords = { x: 0, y: 0 };
@@ -20,9 +17,10 @@
 		
 		frameList = loadFromLocal('frameList', frameList)
 		console.log(frameList)
+		
+		if (frameList === null){
+			frameList = []
 
-		if (frameList.length == 0){
-			
 			let init = buildFrame(
 			"https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg"
 			);
@@ -83,6 +81,7 @@
 				newFrame.y = event.clientY;
 				newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
 				data ? (frameList = [...frameList, newFrame]) : null;
+			frameList = reorderLayers(newFrame.id)
 				// console.log(frameList)
 				// console.log(newFrame.style)
 			}
@@ -112,6 +111,7 @@
 			data ? (frameList = [...frameList, newFrame]) : null;
 			console.log(frameList);
 			console.log(newFrame.style);
+			frameList = reorderLayers(newFrame.id)
 		};
 		
 		function buildFrame(data): FrameT {
@@ -132,7 +132,6 @@
 			
 			id = id + 1;
 			
-			frameList = reorderLayers(frame.id)
 			
 			// console.log(frame);
 			return frame;
