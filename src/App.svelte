@@ -19,8 +19,8 @@
 	frameList = loadFromLocal('frameList', frameList)
 	console.log(frameList)
 	
-	if (frameList === null){
-		frameList = []
+	if (frameList === null || frameList === undefined){
+		frameList = new Array()
 		
 		let init = buildFrame(
 		"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
