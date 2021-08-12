@@ -27,7 +27,7 @@
 		
 		setInterval(() => {
 			autosave(frameList)
-		},1000)
+		},4000)
 		
 		
 		const handleDragStart = (event, frameid) => {
