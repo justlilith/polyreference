@@ -1,10 +1,8 @@
 <script lang='ts'>
-  import Fab from '@smui/fab'
   import { createEventDispatcher } from 'svelte'
   
-  
   export let frame:FrameT
-  // export let style = ''
+  export let frameList:FrameT[]
   
   export let addedClass = ''
   
@@ -16,7 +14,6 @@
   
   let styleConstant:string = ` background-image: url('${frame.url}');`
   let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
-  // frame.style = frame.style + styleConstant + dimensionalConstant
   frame.style = frame.style + styleConstant
   
   const handleDragStartMove = (event) => {
@@ -26,28 +23,17 @@
     coords.y = event.clientY
     topCorner = [frame.x, frame.y] //top left
     offset = [coords.x - topCorner[0], coords.y - topCorner[1]]
-    // console.log(coords, frame.x, frame.y, offset, topCorner)
     return offset
   }
   
   const handleDragMove = (event) => {
-    // console.log('dragging')
-    // console.log(event.target)
     let id = event.dataTransfer.getData('frame id')
     coords.x = event.pageX
     coords.y = event.pageY
-    // console.log(coords, [event.clientX, event.clientY, event.pageX, event.pageY], frame.x, frame.y, offset)
     topCorner = [frame.x, frame.y] //top left
-    // frame.x = coords.x - offset[0]
-    // frame.y = coords.y - offset[1]
     frame.x = event.clientX - offset[0]
     frame.y = event.clientY - offset[1]
-    // frame.x = event.movementX
-    // frame.y = event.movementY
-    // console.log(frame.x, frame.y)
     frame.style = `width: ${frame.width}px; height: ${frame.height}px; position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant
-    // console.log(id)
-    // console.log(frame.style)
     frame = moveHandles(frame)
     return false
   }
@@ -67,31 +53,21 @@
     console.log(event)
     coords.x = event.movementX
     coords.y = event.movementY
-    // let id = event.dataTransfer.getData('frame id')
-    // let corner = {x: frame.x, y: frame.y} //top left
-    // console.log(edge)
-    // console.log(coords)
     switch (edge){
       case 'bright':
       frame.width = frame.width + coords.x
       frame.height = frame.height + coords.y
-      // frame.width += event.offsetX
-      // let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
-      // frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
       console.log(frame.width, frame.height)
       break
       default:
       return
     }
     frame = moveHandles(frame)
-    // frame.style = calculateStyle(frame)
   }
   
   const handleDragResizeDrop = (event) => {
     let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
     frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
-    // console.log(frame.style)
-    
   }
   
   const calculateStyle = (frame:FrameT, corner?:string):string => {
@@ -150,10 +126,6 @@
     
     return frame
   }
-  /*
-  https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg
-  */
-  
   
   const dispatch = createEventDispatcher()
   
@@ -177,33 +149,33 @@
   
 </script>
 
-<!-- <div style={frame.style} class='frame'>
-</div> -->
+
 
 <div class={`frame ${addedClass}`}
 draggable='true'
 style={frame.style}
 on:dragover="{event => handleDragMove(event)}"
 on:dragstart="{event => {
-  // console.log('dragging frame')
   offset = handleDragStartMove(event)
 }}"
 >
 </div>
-{#if frame.top}
 
+{#if frame.top}
 <div class={`${addedClass} handle handle-tleft`} draggable='true'
 style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
+
 >
-<button>Delete</button>
+<button on:click="{event => {
+  frameList = frameList.filter(frame => frame.top == false)
+}}"><a href="#delete">Delete</a></button>
 </div>
 
 <div class={`${addedClass} handle handle-tright`} draggable='true'
 style={calculateStyle(frame, 'tright')}
 on:dragstart={event => offset = handleDragStartResize(event, 'right')}
 ></div>
-<!-- on:dragover={event => event.preventDefault()} -->
 
 <div class={`${addedClass} handle handle-bleft`} draggable='true'
 style={calculateStyle(frame, 'bleft')}
@@ -211,135 +183,122 @@ on:dragstart={event => offset = handleDragStartResize(event, 'bleft')}
 on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 ></div>
 
-<!-- on:dragstart="{event => null}"
-  on:dragover="{event => console.log(event)}"
-  on:dragenter="{event => console.log(event)}" -->
-  <div class={`${addedClass} handle handle-bright`}
-  style={calculateStyle(frame, 'bright')}
-  on:mousedown="{event => {
-    forward(frame,event,'bright')
-    // setActive()
-  }}"
-  >
-  Resize
+<div class={`${addedClass} handle handle-bright`}
+style={calculateStyle(frame, 'bright')}
+on:mousedown="{event => {
+  forward(frame,event,'bright')
+}}"
+>
+Resize
 </div>
 {/if}
-<!-- on:mouseup="{event => setInactive()}"
-  on:mouseleave="{event => setInactive()}" -->
-  <!-- on:mousemove="{event => {
-    // e.preventDefault()
-    if (resizable) {
-      // console.log(event.movementX)
-      // forward(frame,event,'bright')
-      frame.bottomRightHandle.x += event.movementX
-      frame.width += event.movementX
-      frame.bottomRightHandle.y += event.movementY
-      frame.height += event.movementY
-      frame = moveHandles(frame)
-      frame.style = calculateStyle(frame)
-      console.log(frame.bottomRightHandle)
-    }
-  }}" -->
+
+
+
+<style lang='scss'>
+  @mixin wh100 {
+    width:100%;
+    height:100%;
+  }
   
-  <style lang='scss'>
-    @mixin wh100 {
-      width:100%;
-      height:100%;
-    }
-    
-    @mixin wh50 {
-      width:20px;
-      height:20px;
-    }
-    
-    @mixin handle {
-      // z-index: 10;
-      position: fixed;
-      // margin:50px;
-      // border:60px solid hsla(0,0%,0%,0.0);
-      // box-sizing:border-box;
-      border: thick solid cyan;
-    }
-    
-    .frame {
-      height:400px;
-      height:fit-content;
-      width:400px;
-      width:fit-content;
-      // display:block;
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-    
-    .zindexMax {
-      border: thin solid cyan;
-      z-index: 10;
-      position: relative;
-    }
-    
-    .zindexMax.handle {
-      z-index: 15;
-      position: relative;
-    }
-    
-    .resize-handles-frame {
-      @include wh100;
-      display:grid;
-      grid-template-columns: 5% 90% 5%;
-      grid-template-rows: 5% 90% 5%;
-      grid-template-areas:
-      'tleft top tright'
-      'left center right'
-      'bleft bottom bright';
-      // width:100%;
-      // height:100%;
-      border: thin solid cyan
-    }
-    
-    .handle-tleft {
-      @include handle;
-      // grid-area: left;
-      @include wh50;
-      border-bottom:none;
-      border-right:none;
-    }
-    .handle-tleft button {
-      border:none;
-      font-size:100%;
-      font-family: inherit;
-      text-transform: none;
-      color:red;
-      background:none;
-    }
-    
-    .handle-tright {
-      @include handle;
-      // grid-area: right;
-      @include wh50;
-      border-bottom:none;
-      border-left:none;
-      border:none;
-    }
-    .handle-bright {
-      @include handle;
-      @include wh50;
-      // grid-area: bright;
-      // background-color: silver;
-      border-left: none;
-      border-top: none;
-      text-align: right;
-      color:red;
-      overflow: visible;
-      display:flex;
-      align-items: flex-end;
-      flex-direction: column;
-    }  
-    .handle-bleft {
-      @include handle;
-      @include wh50;
-      // grid-area: bright;
-      border-top:none;
-      border-right:none;
-      border:none;
-    }  
-  </style>
+  @mixin wh50 {
+    width:20px;
+    height:20px;
+  }
+  
+  @mixin handle {
+    // z-index: 10;
+    position: fixed;
+    // margin:50px;
+    // border:60px solid hsla(0,0%,0%,0.0);
+    // box-sizing:border-box;
+    border: thick solid cyan;
+  }
+  
+  .frame {
+    height:400px;
+    height:fit-content;
+    width:400px;
+    width:fit-content;
+    // display:block;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  
+  .zindexMax {
+    border: thin solid cyan;
+    z-index: 10;
+    position: relative;
+  }
+  
+  .zindexMax.handle {
+    z-index: 15;
+    position: relative;
+  }
+  
+  .resize-handles-frame {
+    @include wh100;
+    display:grid;
+    grid-template-columns: 5% 90% 5%;
+    grid-template-rows: 5% 90% 5%;
+    grid-template-areas:
+    'tleft top tright'
+    'left center right'
+    'bleft bottom bright';
+    // width:100%;
+    // height:100%;
+    border: thin solid cyan
+  }
+  
+  .handle-tleft {
+    @include handle;
+    // grid-area: left;
+    @include wh50;
+    border-bottom:none;
+    border-right:none;
+  }
+  .handle-tleft button {
+    border:none;
+    font-size:100%;
+    font-family: inherit;
+    text-transform: none;
+    color:red;
+    background:none;
+  }
+  
+  .handle-tright {
+    @include handle;
+    // grid-area: right;
+    @include wh50;
+    border-bottom:none;
+    border-left:none;
+    border:none;
+  }
+  .handle-bright {
+    @include handle;
+    @include wh50;
+    // grid-area: bright;
+    // background-color: silver;
+    border-left: none;
+    border-top: none;
+    text-align: right;
+    color:red;
+    overflow: visible;
+    display:flex;
+    align-items: flex-end;
+    flex-direction: column;
+  }  
+  .handle-bleft {
+    @include handle;
+    @include wh50;
+    // grid-area: bright;
+    border-top:none;
+    border-right:none;
+    border:none;
+  }
+
+  a {
+		color:red;
+		text-decoration: none;
+	}
+</style>

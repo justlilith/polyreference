@@ -2,7 +2,6 @@ let appStorage = window.localStorage
 
 function saveToLocal (prop:string, value):void {
   appStorage.setItem(prop,JSON.stringify(value))
-  // console.log(appStorage.getItem(prop))
 }
 
 function loadFromLocal (prop:string, value) {
@@ -21,7 +20,6 @@ function loadFromLocal (prop:string, value) {
 }
 
 function autosave (frameList:Array<FrameT>):void {
-  // console.log('saving. . .')
   saveToLocal('frameList', frameList)
 }
 
