@@ -84,7 +84,8 @@ export default {
 		commonjs(),
 		typescript({
 			sourceMap: true,
-			inlineSources: !production
+			inlineSources: !production,
+			rootDir: './src'
 		}),
 		
 		// In dev mode, call `npm run start` once
