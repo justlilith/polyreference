@@ -8,7 +8,6 @@ interface FrameT {
   x: number
   y: number
   style: string
-<<<<<<< HEAD
   topRightHandle: Handle
   topLeftHandle: Handle
   bottomRightHandle: Handle
@@ -21,8 +20,4 @@ interface Handle {
   height: number
   x: number
   y: number
-=======
-  active: boolean
-  zindex: string
->>>>>>> main
 }

@@ -9,6 +9,9 @@ function loadFromLocal (prop:string, value) {
   let fetched = null
   try {
     fetched = JSON.parse(appStorage.getItem(prop))
+    if (fetched == "") {
+      throw new Error("Smile empty soul")
+    }
   } catch (e) {
     console.warn(e)
     fetched = value

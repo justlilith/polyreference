@@ -14,46 +14,16 @@
   
   let resizable:boolean = false
   
-<<<<<<< HEAD
-=======
-  let coords = { x:0, y:0}
-  let offset = []
-  
->>>>>>> main
   let styleConstant:string = ` background-image: url('${frame.url}');`
   let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
   // frame.style = frame.style + styleConstant + dimensionalConstant
   frame.style = frame.style + styleConstant
-<<<<<<< HEAD
-  
-  const handleDragStartMove = (event) => {
-=======
-  
-  const handleDragMove = (event) => {
-    let id = event.dataTransfer.getData('frame id')
-    // frameList[id].x = coords.x - frameList[id].x
-    // frameList[id].y = coords.y - frameList[id].y
-    frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;`
-    console.log(event.dataTransfer.getData('frame id'))
-    console.log(coords)
-  }
   
   const handleDragStartMove = (event) => {
     event.dataTransfer.setData('frame id', frame.id)
     event.dataTransfer.dropEffect = 'move'
     coords.x = event.clientX
     coords.y = event.clientY
-    offset = [coords.x - frame.x, coords.y - frame.y]
-    return offset
-  }
-  
-  const handleDragStartResize = (event, edge) => {
->>>>>>> main
-    event.dataTransfer.setData('frame id', frame.id)
-    event.dataTransfer.dropEffect = 'move'
-    coords.x = event.clientX
-    coords.y = event.clientY
-<<<<<<< HEAD
     topCorner = [frame.x, frame.y] //top left
     offset = [coords.x - topCorner[0], coords.y - topCorner[1]]
     // console.log(coords, frame.x, frame.y, offset, topCorner)
@@ -194,94 +164,15 @@
       , event: event
       , edge: edge
     })
-=======
-    offset = [coords.x - frame.x, coords.y - frame.y]
-    return offset // shouldn't change on drag
-  }
-  
-  const handleDragResize = (event, edge) => {
-    coords.x = event.clientX
-    coords.y = event.clientY
-    let id = event.dataTransfer.getData('frame id')
-    let corner = {x: frame.x, y: frame.y} //top left
-    console.log(edge)
-    console.log(coords)
-    switch (edge){
-      case 'bright':
-      frame.width = coords.x - corner.x
-      frame.height = coords.y - corner.y
-      let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
-      frame.style = styleConstant + dimensionalConstant
-      console.log(frame.style)
-      console.log(frame.width, frame.height)
-      default:
-      return
-    }
-  }
-  /*
-  https://i.pinimg.com/originals/10/d1/d3/10d1d39769c54e69a11c409038dc1adc.jpg
-  */
-</script>
-
-<div
-style={frame.style}
-class='frame'>
-</div>
-
-<style lang='scss'>
-  @mixin wh100 {
-    width:100%;
-    height:100%;
-  }
-  
-  div {
-    @include wh100;
-    // display:block;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  
-  .resize-button-frame {
-    display:grid;
-    grid-template-columns: 5% 90% 5%;
-    grid-template-rows: 5% 90% 5%;
-    grid-template-areas:
-    'tleft top tright'
-    'left center right'
-    'bleft bottom bright';
-    // width:100%;
-    // height:100%;
-    border: thin solid cyan
-  }
-  
-  .handle-left {
-    grid-area: left;
-    background-color: deepskyblue;
-    @include wh100
->>>>>>> main
   }
   
   const setActive = () => {
     console.log('well')
     resizable = true
   }
-<<<<<<< HEAD
   const setInactive = () => {
     console.log('nevermind')
     resizable = false
-=======
-  .handle-bright {
-    grid-area: bright;
-    background-color: silver;
-    @include wh100
-  }
-  .resize-button {
-    position:absolute;
-    right:0px;
-    bottom:0px;
-    border: thin solid red;
-    // z-index:10;
->>>>>>> main
   }
   
 </script>
@@ -300,11 +191,13 @@ on:dragstart="{event => {
 >
 </div>
 {#if frame.top}
-  
+
 <div class={`${addedClass} handle handle-tleft`} draggable='true'
 style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
-></div>
+>
+<button>Delete</button>
+</div>
 
 <div class={`${addedClass} handle handle-tright`} draggable='true'
 style={calculateStyle(frame, 'tright')}
@@ -327,101 +220,126 @@ on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
     forward(frame,event,'bright')
     // setActive()
   }}"
-  ></div>
-  {/if}
-  <!-- on:mouseup="{event => setInactive()}"
-    on:mouseleave="{event => setInactive()}" -->
-    <!-- on:mousemove="{event => {
-      // e.preventDefault()
-      if (resizable) {
-        // console.log(event.movementX)
-        // forward(frame,event,'bright')
-        frame.bottomRightHandle.x += event.movementX
-        frame.width += event.movementX
-        frame.bottomRightHandle.y += event.movementY
-        frame.height += event.movementY
-        frame = moveHandles(frame)
-        frame.style = calculateStyle(frame)
-        console.log(frame.bottomRightHandle)
-      }
-    }}" -->
+  >
+  Resize
+</div>
+{/if}
+<!-- on:mouseup="{event => setInactive()}"
+  on:mouseleave="{event => setInactive()}" -->
+  <!-- on:mousemove="{event => {
+    // e.preventDefault()
+    if (resizable) {
+      // console.log(event.movementX)
+      // forward(frame,event,'bright')
+      frame.bottomRightHandle.x += event.movementX
+      frame.width += event.movementX
+      frame.bottomRightHandle.y += event.movementY
+      frame.height += event.movementY
+      frame = moveHandles(frame)
+      frame.style = calculateStyle(frame)
+      console.log(frame.bottomRightHandle)
+    }
+  }}" -->
+  
+  <style lang='scss'>
+    @mixin wh100 {
+      width:100%;
+      height:100%;
+    }
     
-    <style lang='scss'>
-      @mixin wh100 {
-        width:100%;
-        height:100%;
-      }
-      
-      @mixin wh50 {
-        width:20px;
-        height:20px;
-      }
-      
-      @mixin handle {
-        // z-index: 10;
-        position: fixed;
-        // margin:50px;
-        // border:60px solid hsla(0,0%,0%,0.0);
-        // box-sizing:border-box;
-      }
-      
-      .frame {
-        height:400px;
-        height:fit-content;
-        width:400px;
-        width:fit-content;
-        // display:block;
-        background-size: contain;
-        background-repeat: no-repeat;
-      }
-      
-      .zindexMax {
-        border: thin solid cyan;
-        z-index: 10;
-        position: relative;
-      }
-      
-      .zindexMax.handle {
-        z-index: 15;
-        position: relative;
-      }
-      
-      .resize-handles-frame {
-        @include wh100;
-        display:grid;
-        grid-template-columns: 5% 90% 5%;
-        grid-template-rows: 5% 90% 5%;
-        grid-template-areas:
-        'tleft top tright'
-        'left center right'
-        'bleft bottom bright';
-        // width:100%;
-        // height:100%;
-        border: thin solid cyan
-      }
-      
-      .handle-tleft {
-        @include handle;
-        // grid-area: left;
-        background-color: deepskyblue;
-        @include wh50;
-      }
-      .handle-tright {
-        @include handle;
-        // grid-area: right;
-        background-color: deeppink;
-        @include wh50;
-      }
-      .handle-bright {
-        @include handle;
-        @include wh50;
-        // grid-area: bright;
-        background-color: silver;
-      }  
-      .handle-bleft {
-        @include handle;
-        @include wh50;
-        // grid-area: bright;
-        background-color: silver;
-      }  
-    </style>
+    @mixin wh50 {
+      width:20px;
+      height:20px;
+    }
+    
+    @mixin handle {
+      // z-index: 10;
+      position: fixed;
+      // margin:50px;
+      // border:60px solid hsla(0,0%,0%,0.0);
+      // box-sizing:border-box;
+      border: thick solid cyan;
+    }
+    
+    .frame {
+      height:400px;
+      height:fit-content;
+      width:400px;
+      width:fit-content;
+      // display:block;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    
+    .zindexMax {
+      border: thin solid cyan;
+      z-index: 10;
+      position: relative;
+    }
+    
+    .zindexMax.handle {
+      z-index: 15;
+      position: relative;
+    }
+    
+    .resize-handles-frame {
+      @include wh100;
+      display:grid;
+      grid-template-columns: 5% 90% 5%;
+      grid-template-rows: 5% 90% 5%;
+      grid-template-areas:
+      'tleft top tright'
+      'left center right'
+      'bleft bottom bright';
+      // width:100%;
+      // height:100%;
+      border: thin solid cyan
+    }
+    
+    .handle-tleft {
+      @include handle;
+      // grid-area: left;
+      @include wh50;
+      border-bottom:none;
+      border-right:none;
+    }
+    .handle-tleft button {
+      border:none;
+      font-size:100%;
+      font-family: inherit;
+      text-transform: none;
+      color:red;
+      background:none;
+    }
+    
+    .handle-tright {
+      @include handle;
+      // grid-area: right;
+      @include wh50;
+      border-bottom:none;
+      border-left:none;
+      border:none;
+    }
+    .handle-bright {
+      @include handle;
+      @include wh50;
+      // grid-area: bright;
+      // background-color: silver;
+      border-left: none;
+      border-top: none;
+      text-align: right;
+      color:red;
+      overflow: visible;
+      display:flex;
+      align-items: flex-end;
+      flex-direction: column;
+    }  
+    .handle-bleft {
+      @include handle;
+      @include wh50;
+      // grid-area: bright;
+      border-top:none;
+      border-right:none;
+      border:none;
+    }  
+  </style>
