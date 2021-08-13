@@ -1,7 +1,7 @@
 <script lang='ts'>
   import { createEventDispatcher } from 'svelte'
-	import { autosave, loadFromLocal } from './ts/autosave'
-
+  import { autosave, loadFromLocal } from './ts/autosave'
+  
   import * as Helpers from './ts/helpers'
   
   export let frame:FrameT
@@ -154,14 +154,17 @@ on:dragend="{event => autosave(frameList)}"
 
 {#if frame.active}
 
-<div class={`${addedClass} handle handle-tleft`} draggable='true'
+<div 
+id='delete'
+class={`${addedClass} handle handle-tleft`} draggable='true'
 style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
-
 >
-<button on:click="{event => {
+<button
+id='deleteButton'
+on:click="{event => {
   frameList = frameList.filter(frame => frame.top == false)
-}}">Delete</button>
+}}"></button>
 </div>
 
 <div class={`${addedClass} handle handle-tright`} draggable='true'
@@ -175,13 +178,14 @@ on:dragstart={event => offset = handleDragStartResize(event, 'bleft')}
 on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 ></div>
 
-<div class={`${addedClass} handle handle-bright`}
+<div
+id='resize'
+class={`${addedClass} handle handle-bright`}
 style={calculateStyle(frame, 'bright')}
 on:mousedown="{event => {
   forward(frame,event,'bright')
 }}"
 >
-Resize
 </div>
 {/if}
 
@@ -292,9 +296,31 @@ Resize
     border-right:none;
     border:none;
   }
-
+  
   a {
-		color:red;
-		text-decoration: none;
-	}
+    color:red;
+    text-decoration: none;
+  }
+  
+  #deleteButton:hover::before {
+    content: 'delete';
+    color:red;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
+  #deleteButton {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+  }
+  
+  #resize:hover::after {
+    content: 'resize'
+  }
 </style>
