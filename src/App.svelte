@@ -25,6 +25,7 @@
 
 		init.x = 50
 		init.y = 100
+		init = Helpers.fitToScreen(init)
 		init.style = Helpers.calculateStyle(init)
 		Helpers.moveHandles(init)
 
