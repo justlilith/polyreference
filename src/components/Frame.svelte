@@ -161,7 +161,8 @@ on:dragstart="{event => {
 >
 </div>
 
-{#if frame.top}
+{#if frame.active}
+
 <div class={`${addedClass} handle handle-tleft`} draggable='true'
 style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
@@ -226,12 +227,16 @@ Resize
   }
   
   .zindexMax {
-    border: thin solid cyan;
+    // border: thin solid cyan;
     z-index: 10;
     position: relative;
   }
   
-  .zindexMax.handle {
+  .active {
+    border: thin solid cyan;
+  }
+  
+  .active.handle {
     z-index: 15;
     position: relative;
   }
