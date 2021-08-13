@@ -159,7 +159,8 @@ style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
 
 >
-<button on:click="{event => {
+<button 
+on:click="{event => {
   frameList = frameList.filter(frame => frame.top == false)
 }}">Delete</button>
 </div>
@@ -175,7 +176,8 @@ on:dragstart={event => offset = handleDragStartResize(event, 'bleft')}
 on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 ></div>
 
-<div class={`${addedClass} handle handle-bright`}
+<div
+class={`${addedClass} handle handle-bright`}
 style={calculateStyle(frame, 'bright')}
 on:mousedown="{event => {
   forward(frame,event,'bright')
@@ -297,4 +299,5 @@ Resize
 		color:red;
 		text-decoration: none;
 	}
+
 </style>

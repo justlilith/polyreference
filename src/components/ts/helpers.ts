@@ -1,3 +1,5 @@
+import { autosave } from "./autosave";
+
 let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
 function buildFrame(data:string, frameList:Array<FrameT>):FrameT {
@@ -76,6 +78,17 @@ function clearActiveFrame (frameList) {
   })
 }
 
+function fitToScreen(frame){
+  let aspect = frame.width / frame.height // 20/10 == 2:1 == 2
+  let newWidth = window.visualViewport.width / 2 //e.g. 450
+  let newHeight = window.visualViewport.width / 2 //e.g 225
+  frame.width > frame.height //wideboi
+  ? newHeight = newWidth / aspect //e.g 225
+  : newWidth = newHeight * aspect //longboi (1/2 = .5, )
+  console.log(newWidth, newHeight, aspect)
+  return {...frame, width: newWidth, height: newHeight}
+}
+
 function getActiveFrame (frameList:FrameT[]):FrameT {
   return frameList.filter(frame => frame.top == true)[0]
 }
@@ -83,24 +96,41 @@ function getActiveFrame (frameList:FrameT[]):FrameT {
 function handleKeypress(event, frameList?){
   // console.log(event)
   switch (event.key) {
+    case 'a':
+    if (event.ctrlKey){
+      frameList = selectAllFrames(frameList)
+      autosave(frameList)
+    }
+    if (event.ctrlKey && event.shiftKey){
+      event.preventDefault()
+      frameList = clearActiveFrame(frameList)
+      autosave(frameList)
+    }
+    break
     case 'Escape':
     frameList = clearActiveFrame(frameList)
+    autosave(frameList)
     break
     case 'Delete':
     case 'Backspace':
-    frameList = frameList.filter(frame => frame.top == false)
+    frameList = frameList.filter(frame => frame.active == false)
+    autosave(frameList)
     break
     case 'ArrowLeft':
     frameList = moveActiveFrame(frameList,'left')
+    autosave(frameList)
     break
     case 'ArrowRight':
     frameList = moveActiveFrame(frameList,'right')
+    autosave(frameList)
     break
     case 'ArrowUp':
     frameList = moveActiveFrame(frameList,'up')
+    autosave(frameList)
     break
     case 'ArrowDown':
     frameList = moveActiveFrame(frameList,'down')
+    autosave(frameList)
     break
     default:
     break
@@ -168,13 +198,21 @@ function reorderLayers (frameid,frameList:FrameT[]):Array<FrameT> {
   return newList
 }
 
+function selectAllFrames(frameList) {
+  return frameList.map(frame => {
+    return {...frame, active: true}
+  })
+}
+
 export { buildFrame
   , calculateStyle
   , clearActiveFrame
+  , fitToScreen
   , getActiveFrame
   , handleKeypress
   , moveActiveFrame
   , moveHandles
   , purgeFrames
+  , selectAllFrames
   , reorderLayers
 }
