@@ -1,5 +1,8 @@
 <script lang='ts'>
   import { createEventDispatcher } from 'svelte'
+	import { autosave, loadFromLocal } from './ts/autosave'
+
+  import * as Helpers from './ts/helpers'
   
   export let frame:FrameT
   export let frameList:FrameT[]
@@ -12,9 +15,9 @@
   
   let resizable:boolean = false
   
-  let styleConstant:string = ` background-image: url('${frame.url}');`
-  let dimensionalConstant:string = ` width: ${frame.width}px; height: ${frame.height}px;`
-  frame.style = frame.style + styleConstant
+  let styleConstant:string = ` background-image: url('${frame?.url}');`
+  let dimensionalConstant:string = ` width: ${frame?.width}px; height: ${frame?.height}px;`
+  frame.style = frame?.style + styleConstant
   
   const handleDragStartMove = (event) => {
     event.dataTransfer.setData('frame id', frame.id)
@@ -34,7 +37,7 @@
     frame.x = event.clientX - offset[0]
     frame.y = event.clientY - offset[1]
     frame.style = `width: ${frame.width}px; height: ${frame.height}px; position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant
-    frame = moveHandles(frame)
+    frame = Helpers.moveHandles(frame)
     return false
   }
   
@@ -62,7 +65,7 @@
       default:
       return
     }
-    frame = moveHandles(frame)
+    frame = Helpers.moveHandles(frame)
   }
   
   const handleDragResizeDrop = (event) => {
@@ -114,19 +117,6 @@
     return style
   }
   
-  function moveHandles (frame:FrameT):FrameT {
-    frame.topLeftHandle.x = frame.x
-    frame.topLeftHandle.y = frame.y
-    frame.topRightHandle.x = frame.x + frame.width - frame.topRightHandle.width
-    frame.topRightHandle.y = frame.y
-    frame.bottomLeftHandle.x = frame.x
-    frame.bottomLeftHandle.y = frame.y + frame.height - frame.bottomLeftHandle.height
-    frame.bottomRightHandle.x = frame.x + frame.width - frame.bottomRightHandle.width
-    frame.bottomRightHandle.y = frame.y + frame.height - frame.bottomRightHandle.height
-    
-    return frame
-  }
-  
   const dispatch = createEventDispatcher()
   
   function forward(frame,event,edge){
@@ -153,15 +143,17 @@
 
 <div class={`frame ${addedClass}`}
 draggable='true'
-style={frame.style}
+style={frame?.style}
 on:dragover="{event => handleDragMove(event)}"
 on:dragstart="{event => {
   offset = handleDragStartMove(event)
 }}"
+on:dragend="{event => autosave(frameList)}"
 >
 </div>
 
-{#if frame.top}
+{#if frame.active}
+
 <div class={`${addedClass} handle handle-tleft`} draggable='true'
 style={calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
@@ -169,7 +161,7 @@ on:dragstart={event => offset = handleDragStartResize(event, 'left')}
 >
 <button on:click="{event => {
   frameList = frameList.filter(frame => frame.top == false)
-}}"><a href="#delete">Delete</a></button>
+}}">Delete</button>
 </div>
 
 <div class={`${addedClass} handle handle-tright`} draggable='true'
@@ -226,12 +218,16 @@ Resize
   }
   
   .zindexMax {
-    border: thin solid cyan;
+    // border: thin solid cyan;
     z-index: 10;
     position: relative;
   }
   
-  .zindexMax.handle {
+  .active {
+    border: thin solid cyan;
+  }
+  
+  .active.handle {
     z-index: 15;
     position: relative;
   }

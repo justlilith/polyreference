@@ -1,9 +1,12 @@
 let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
 function buildFrame(data:string, frameList:Array<FrameT>):FrameT {
+  if (!data) {
+    return
+  }
   let id = frameList.length;
   
-  let frame = {
+  let frame:FrameT = {
     url: data,
     width: 400,
     height: 400,
@@ -15,7 +18,8 @@ function buildFrame(data:string, frameList:Array<FrameT>):FrameT {
     topRightHandle: { ...defaultHandle, x: 380 },
     bottomRightHandle: { ...defaultHandle, x: 380, y: 380 },
     bottomLeftHandle: { ...defaultHandle, y: 380 },
-    top: true
+    top: true,
+    active: true
   };
   
   return frame;
@@ -66,20 +70,44 @@ function calculateStyle (frame:FrameT, corner?:string):string {
   return style
 }
 
-function reorderLayers (frameid,frameList:FrameT[]):Array<FrameT> {
-  let newList = frameList.map(frame => {
-    if (frame.id == frameid) {
-      frame = {...frame, top: true}
-    } else {
-      frame = {...frame, top: false}
-    }
-    return frame
+function clearActiveFrame (frameList) {
+  return frameList.map(frame => {
+    return {...frame, active : false}
   })
-  return newList
 }
 
 function getActiveFrame (frameList:FrameT[]):FrameT {
   return frameList.filter(frame => frame.top == true)[0]
+}
+
+function handleKeypress(event, frameList?){
+  // console.log(event)
+  switch (event.key) {
+    case 'Escape':
+    frameList = clearActiveFrame(frameList)
+    break
+    case 'Delete':
+    case 'Backspace':
+    frameList = frameList.filter(frame => frame.top == false)
+    break
+    case 'ArrowLeft':
+    frameList = moveActiveFrame(frameList,'left')
+    break
+    case 'ArrowRight':
+    frameList = moveActiveFrame(frameList,'right')
+    break
+    case 'ArrowUp':
+    frameList = moveActiveFrame(frameList,'up')
+    break
+    case 'ArrowDown':
+    frameList = moveActiveFrame(frameList,'down')
+    break
+    default:
+    break
+  }
+  if (frameList) {
+    return frameList
+  }
 }
 
 function moveActiveFrame(frameList,direction){
@@ -91,13 +119,13 @@ function moveActiveFrame(frameList,direction){
     console.log(frameList[active.id].x)
     break
     case 'right':
-      frameList[active.id].x = (frameList[active.id].x + CONSTANT) - (frameList[active.id].x % CONSTANT)
+    frameList[active.id].x = (frameList[active.id].x + CONSTANT) - (frameList[active.id].x % CONSTANT)
     break
     case 'up':
-      frameList[active.id].y = (frameList[active.id].y - CONSTANT) - (frameList[active.id].y % CONSTANT)
-      break
-      case 'down':
-      frameList[active.id].y = (frameList[active.id].y + CONSTANT) - (frameList[active.id].y % CONSTANT)
+    frameList[active.id].y = (frameList[active.id].y - CONSTANT) - (frameList[active.id].y % CONSTANT)
+    break
+    case 'down':
+    frameList[active.id].y = (frameList[active.id].y + CONSTANT) - (frameList[active.id].y % CONSTANT)
     break
     default:
     break
@@ -122,4 +150,31 @@ function moveHandles(frame: FrameT): FrameT {
   return frame;
 }
 
-export { buildFrame, reorderLayers, moveActiveFrame, getActiveFrame, moveHandles, calculateStyle }
+function purgeFrames (frameList) {
+  return frameList.filter(frame => {
+    return frame !== null || frame !== undefined
+  })
+}
+
+function reorderLayers (frameid,frameList:FrameT[]):Array<FrameT> {
+  let newList = frameList.map(frame => {
+    if (frame.id == frameid) {
+      frame = {...frame, top: true, active: true}
+    } else {
+      frame = {...frame, top: false, active: false}
+    }
+    return frame
+  })
+  return newList
+}
+
+export { buildFrame
+  , calculateStyle
+  , clearActiveFrame
+  , getActiveFrame
+  , handleKeypress
+  , moveActiveFrame
+  , moveHandles
+  , purgeFrames
+  , reorderLayers
+}

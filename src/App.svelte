@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { autosave, loadFromLocal } from './components/ts/autosave'
-	import { buildFrame, reorderLayers, moveActiveFrame, moveHandles, calculateStyle } from './components/ts/helpers'
+	import * as Helpers from './components/ts/helpers'
 	import Frame from "./components/Frame.svelte";
 	import Input from './components/Input.svelte'
 	
@@ -19,16 +19,16 @@
 	if (frameList === null || frameList === undefined){
 		frameList = new Array()
 		
-		let init = buildFrame(
+		let init = Helpers.buildFrame(
 		"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
 		, frameList);
 		
 		frameList.push(init);
 	}
 	
-	setInterval(() => {
-		autosave(frameList)
-	},4000)
+	// setInterval(() => {
+	// 	autosave(frameList)
+	// },4000)
 	
 	const handleDragStart = (event, frameid) => {
 		event.dataTransfer.setData("frame id", frameid);
@@ -55,12 +55,12 @@
 	const drop = (event, coords) => {
 		if (!event.dataTransfer.getData("frame id")) {
 			let data = event.dataTransfer.getData("text");
-			let newFrame = buildFrame(data, frameList);
+			let newFrame = Helpers.buildFrame(data, frameList);
 			newFrame.x = event.clientX;
 			newFrame.y = event.clientY;
 			newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
 			data ? (frameList = [...frameList, newFrame]) : null;
-			frameList = reorderLayers(newFrame.id, frameList)
+			frameList = Helpers.reorderLayers(newFrame.id, frameList)
 		}
 		if (event.dataTransfer.dropEffect == "move") {
 			let id = event.dataTransfer.getData("frame id");
@@ -73,12 +73,12 @@
 		if (image) {
 			data = URL.createObjectURL(image);
 		}
-		let newFrame = buildFrame(data, frameList);
+		let newFrame = Helpers.buildFrame(data, frameList);
 		newFrame.x = 0;
 		newFrame.y = 0;
 		newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
 		data ? (frameList = [...frameList, newFrame]) : null;
-		frameList = reorderLayers(newFrame.id, frameList)
+		frameList = Helpers.reorderLayers(newFrame.id, frameList)
 	};
 	
 	let resizable: boolean = false;
@@ -106,41 +106,17 @@
 			frame.height += coords.y
 			frame.bottomRightHandle.x += coords.x
 			frame.bottomRightHandle.y += coords.y
-			frame = moveHandles(frame)
-			frame.style = calculateStyle(frame)
+			frame = Helpers.moveHandles(frame)
+			frame.style = Helpers.calculateStyle(frame)
 		}
 		return frame
 	};
-	
-	function handleKeypress(event){
-		// console.log(event)
-		switch (event.key) {
-			case 'Delete':
-			case 'Backspace':
-			frameList = frameList.filter(frame => frame.top == false)
-			break
-			case 'ArrowLeft':
-			frameList = moveActiveFrame(frameList,'left')
-			break
-			case 'ArrowRight':
-			frameList = moveActiveFrame(frameList,'right')
-			break
-			case 'ArrowUp':
-			frameList = moveActiveFrame(frameList,'up')
-			break
-			case 'ArrowDown':
-			frameList = moveActiveFrame(frameList,'down')
-			break
-			default:
-			break
-		}
-	}
 </script>
 
 
 
 <svelte:window
-on:keydown="{(event) => handleKeypress(event)}"
+on:keydown="{(event) => frameList = Helpers.handleKeypress(event, frameList)}"
 />
 <main
 >
@@ -152,18 +128,17 @@ on:keydown="{(event) => handleKeypress(event)}"
 <div
 id="dropzone"
 
-on:mouseup="{event => setInactive()}"
+on:mouseup="{event => {
+	setInactive()
+	autosave(frameList)
+	}}"
 on:mousedown="{event => {
 	let target = event.target
 	if (target?.id=='dropzone') {
-		frameList = frameList.map(frame => {
-			return {...frame, top : false}
-		})
+		frameList = Helpers.clearActiveFrame(frameList)
 	} else {
 		setActive()
-
 	}
-	// console.log(event)
 }}"
 on:dragover={(event) => {
 	return false;
@@ -177,22 +152,28 @@ on:mousemove="{(event) => {
 
 {#if frameList.length > 0}
 {#each frameList as frame}
+{#if frame == null}
+	<!--  -->
+	{frameList = Helpers.purgeFrames(frameList)}
+{:else}
 <div
-on:click="{() => {frameList = reorderLayers(frame.id, frameList)}}"
+on:click="{() => {
+	frameList = Helpers.reorderLayers(frame.id, frameList)
+	}}"
 >
 <Frame
 bind:frameList
-addedClass={frame.top == true? 'zindexMax' : ''}
-on:click="{() => {frameList = reorderLayers(frame.id, frameList)}}"
+addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
+on:click="{() => {frameList = Helpers.reorderLayers(frame.id, frameList)}}"
 on:message={(message) => {
-	currentFrame = message;
-	currentFrame = currentFrame?.detail?.frame.id;
-	currentEdge = message;
-	currentEdge = currentEdge?.detail?.edge;
+	let currentMessage = message;
+	currentFrame = currentMessage?.detail?.frame.id;
+	currentEdge = currentMessage?.detail?.edge;
 }}
 {frame}
 />
 </div>
+{/if}
 {/each}
 {/if}
 
