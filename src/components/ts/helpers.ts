@@ -1,6 +1,9 @@
 let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
 function buildFrame(data:string, frameList:Array<FrameT>):FrameT {
+  if (!data) {
+    return
+  }
   let id = frameList.length;
   
   let frame:FrameT = {
@@ -147,6 +150,12 @@ function moveHandles(frame: FrameT): FrameT {
   return frame;
 }
 
+function purgeFrames (frameList) {
+  return frameList.filter(frame => {
+    return frame !== null || frame !== undefined
+  })
+}
+
 function reorderLayers (frameid,frameList:FrameT[]):Array<FrameT> {
   let newList = frameList.map(frame => {
     if (frame.id == frameid) {
@@ -166,5 +175,6 @@ export { buildFrame
   , handleKeypress
   , moveActiveFrame
   , moveHandles
+  , purgeFrames
   , reorderLayers
 }

@@ -26,9 +26,9 @@
 		frameList.push(init);
 	}
 	
-	setInterval(() => {
-		autosave(frameList)
-	},4000)
+	// setInterval(() => {
+	// 	autosave(frameList)
+	// },4000)
 	
 	const handleDragStart = (event, frameid) => {
 		event.dataTransfer.setData("frame id", frameid);
@@ -128,7 +128,10 @@ on:keydown="{(event) => frameList = Helpers.handleKeypress(event, frameList)}"
 <div
 id="dropzone"
 
-on:mouseup="{event => setInactive()}"
+on:mouseup="{event => {
+	setInactive()
+	autosave(frameList)
+	}}"
 on:mousedown="{event => {
 	let target = event.target
 	if (target?.id=='dropzone') {
@@ -149,6 +152,10 @@ on:mousemove="{(event) => {
 
 {#if frameList.length > 0}
 {#each frameList as frame}
+{#if frame == null}
+	<!--  -->
+	{frameList = Helpers.purgeFrames(frameList)}
+{:else}
 <div
 on:click="{() => {
 	frameList = Helpers.reorderLayers(frame.id, frameList)
@@ -156,17 +163,17 @@ on:click="{() => {
 >
 <Frame
 bind:frameList
-addedClass="{`${frame.top == true ? 'zindexMax' : ''} ${frame.active == true ? 'active' : ''}`}"
+addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
 on:click="{() => {frameList = Helpers.reorderLayers(frame.id, frameList)}}"
 on:message={(message) => {
-	currentFrame = message;
-	currentFrame = currentFrame?.detail?.frame.id;
-	currentEdge = message;
-	currentEdge = currentEdge?.detail?.edge;
+	let currentMessage = message;
+	currentFrame = currentMessage?.detail?.frame.id;
+	currentEdge = currentMessage?.detail?.edge;
 }}
 {frame}
 />
 </div>
+{/if}
 {/each}
 {/if}
 

@@ -21,6 +21,7 @@ function loadFromLocal (prop:string, value) {
 
 function autosave (frameList:Array<FrameT>):void {
   saveToLocal('frameList', frameList)
+  console.log('saved uwu ✨')
 }
 
 export { autosave, loadFromLocal, saveToLocal }
