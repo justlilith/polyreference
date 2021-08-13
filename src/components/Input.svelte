@@ -59,6 +59,7 @@
 		grid-column: 1 / span 6;
 		background:black;
 		color:White;
+		border: thin solid cyan;
 	}
 	#submit {
 		// background-color: #fff;
@@ -68,5 +69,9 @@
 		border:none;
 		text-decoration: none;
 		width:100%;
+	}
+
+	:global(.mdc-button--outlined:not(:disabled)) {
+		color:cyan;
 	}
 </style>
