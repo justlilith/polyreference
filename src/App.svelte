@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { autosave, loadFromLocal } from './components/ts/autosave'
-	import { buildFrame, reorderLayers } from './components/ts/helpers'
+	import { buildFrame, reorderLayers, moveActiveFrame, moveHandles, calculateStyle } from './components/ts/helpers'
 	import Frame from "./components/Frame.svelte";
 	import Input from './components/Input.svelte'
 	
@@ -12,9 +12,6 @@
 	let offset = [];
 	let currentFrame;
 	let currentEdge;
-	
-	let addedClass
-	
 	
 	frameList = loadFromLocal('frameList', frameList)
 	console.log(frameList)
@@ -100,64 +97,6 @@
 		dispatch(message);
 	};
 	
-	function moveHandles(frame: FrameT): FrameT {
-		frame.topLeftHandle.x = frame.x;
-		frame.topLeftHandle.y = frame.y;
-		frame.topRightHandle.x = frame.x + frame.width - frame.topRightHandle.width;
-		frame.topRightHandle.y = frame.y;
-		frame.bottomLeftHandle.x = frame.x;
-		frame.bottomLeftHandle.y = frame.y + frame.height - frame.bottomLeftHandle.height;
-		frame.bottomRightHandle.x = frame.x + frame.width - frame.bottomRightHandle.width;
-		frame.bottomRightHandle.y = frame.y + frame.height - frame.bottomRightHandle.height;
-		
-		return frame;
-	}
-	
-	const calculateStyle = (frame:FrameT, corner?:string):string => {
-		let style:string = ""
-		let addedStyle:string
-		
-		let width = frame.width
-		let height = frame.height
-		
-		if (corner) {
-			switch (corner) {
-				case 'tleft':
-				width = frame.topLeftHandle.width
-				height = frame.topLeftHandle.height
-				addedStyle = ` top: ${frame.topLeftHandle.y}px; left: ${frame.topLeftHandle.x}px;`
-				break
-				case 'tright':
-				width = frame.topRightHandle.width
-				height = frame.topRightHandle.height
-				addedStyle = ` top: ${frame.topRightHandle.y}px; left: ${frame.topRightHandle.x}px;`
-				break
-				case 'bleft':
-				width = frame.bottomLeftHandle.width
-				height = frame.bottomLeftHandle.height
-				addedStyle = ` top: ${frame.bottomLeftHandle.y}px; left: ${frame.bottomLeftHandle.x}px;`
-				break
-				case 'bright':
-				width = frame.bottomRightHandle.width
-				height = frame.bottomRightHandle.height
-				addedStyle = ` top: ${frame.bottomRightHandle.y}px; left: ${frame.bottomRightHandle.x}px;`
-				break
-				default:
-				return
-			}
-		}
-		
-		style = `width: ${width}px; height: ${height}px; position: fixed;`
-		
-		if (!corner) {
-			style = style + ` background-image: url('${frame.url}'); top: ${frame.y}px; left: ${frame.x}px;` 
-		}
-		if (corner) {
-			style = style + addedStyle
-		}
-		return style
-	}
-	
 	const trackMouse = (event, frameId, edge):FrameT => {
 		let frame = frameList[frameId]
 		if (resizable) {
@@ -174,10 +113,23 @@
 	};
 	
 	function handleKeypress(event){
+		// console.log(event)
 		switch (event.key) {
 			case 'Delete':
 			case 'Backspace':
 			frameList = frameList.filter(frame => frame.top == false)
+			break
+			case 'ArrowLeft':
+			frameList = moveActiveFrame(frameList,'left')
+			break
+			case 'ArrowRight':
+			frameList = moveActiveFrame(frameList,'right')
+			break
+			case 'ArrowUp':
+			frameList = moveActiveFrame(frameList,'up')
+			break
+			case 'ArrowDown':
+			frameList = moveActiveFrame(frameList,'down')
 			break
 			default:
 			break
@@ -188,7 +140,7 @@
 
 
 <svelte:window
-on:keyup="{(event) => handleKeypress(event)}"
+on:keydown="{(event) => handleKeypress(event)}"
 />
 <main
 >
@@ -202,7 +154,16 @@ id="dropzone"
 
 on:mouseup="{event => setInactive()}"
 on:mousedown="{event => {
-	setActive()
+	let target = event.target
+	if (target?.id=='dropzone') {
+		frameList = frameList.map(frame => {
+			return {...frame, top : false}
+		})
+	} else {
+		setActive()
+
+	}
+	// console.log(event)
 }}"
 on:dragover={(event) => {
 	return false;

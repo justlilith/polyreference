@@ -42,7 +42,7 @@
   #inputArea {
 		background-color: black;
 		padding:1em;
-		width: 100%;
+		// width: 100%;
 		// height: 2em;
 		// background-color: theme.$primary;
 		display:grid;
