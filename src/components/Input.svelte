@@ -7,10 +7,10 @@
 
   let inputContent:string = ''
   
-  const keypressCheck = (event) => {
+  const keypressCheck = async (event) => {
     // console.log(event)
     if (event.key.toLowerCase() == 'enter') {
-      let newFrame = buildFrame(inputContent, frameList)
+      let newFrame = await buildFrame(inputContent, frameList)
       frameList = [...frameList, newFrame]
 			frameList = reorderLayers(newFrame.id, frameList)
       inputContent = ''

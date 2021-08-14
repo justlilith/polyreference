@@ -22,24 +22,14 @@
 		let init = Helpers.buildFrame(
 		"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
 		, frameList)
+		.then(frame => {
 		
-		init.x = 50
-		init.y = 100
-		
-		let newImage = new Image()
-		newImage.src = "https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
-		newImage.onload = () => {
-			console.log(newImage.naturalHeight, newImage.naturalWidth)
-			init.height = newImage.naturalHeight
-			init.width = newImage.naturalWidth
-			init = Helpers.fitToScreen(init)
-			init.style = Helpers.calculateStyle(init)
-			Helpers.moveHandles(init)
-			
-			frameList = [...frameList, init]
-			frameList = Helpers.reorderLayers(init.id, frameList)
-			console.log(frameList.filter(frame => frame.id == init.id))
-		}
+		frame.x = 50
+		frame.y = 100
+		frameList = [...frameList, frame]
+			frameList = Helpers.reorderLayers(frame.id, frameList)
+			console.log(frameList.filter(frame => frame.id == frame.id))
+	})
 	}
 	
 	const handleDragStart = (event, frameid) => {
@@ -64,10 +54,10 @@
 		return false;
 	};
 	
-	const drop = (event, coords) => {
+	const drop = async (event, coords) => {
 		if (!event.dataTransfer.getData("frame id")) {
 			let data = event.dataTransfer.getData("text");
-			let newFrame = Helpers.buildFrame(data, frameList);
+			let newFrame = await Helpers.buildFrame(data, frameList);
 			newFrame.x = event.clientX;
 			newFrame.y = event.clientY;
 			newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
@@ -79,13 +69,13 @@
 		}
 	};
 	
-	const paste = (event) => {
+	const paste = async (event) => {
 		let image = event?.clipboardData?.items[0].getAsFile();
 		let data = event?.clipboardData?.getData("text");
 		if (image) {
 			data = URL.createObjectURL(image);
 		}
-		let newFrame = Helpers.buildFrame(data, frameList);
+		let newFrame = await Helpers.buildFrame(data, frameList);
 		newFrame.x = 50;
 		newFrame.y = 100;
 		newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
@@ -120,21 +110,6 @@
 	
 	const forward = (message) => {
 		dispatch(message);
-	};
-	
-	const trackMouse = (event, frameId, edge):FrameT => {
-		let frame = frameList[frameId]
-		if (resizable) {
-			coords.x = event.movementX;
-			coords.y = event.movementY;
-			frame.width += coords.x
-			frame.height += coords.y
-			frame.bottomRightHandle.x += coords.x
-			frame.bottomRightHandle.y += coords.y
-			frame = Helpers.moveHandles(frame)
-			frame.style = Helpers.calculateStyle(frame)
-		}
-		return frame
 	};
 </script>
 
@@ -171,7 +146,11 @@ on:dragover={(event) => {
 on:drop|preventDefault="{(event) => drop(event, coords)}"
 on:paste="{(event) => paste(event)}"
 on:mousemove="{(event) => {
-	frameList[currentFrame] ? frameList[currentFrame] = trackMouse(event, currentFrame, currentEdge) : null
+	if (frameList[currentFrame]) {
+		if (resizable == true) {
+		  frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
+		}
+	}
 }}"
 >
 
@@ -183,6 +162,7 @@ on:mousemove="{(event) => {
 {:else}
 <div
 on:click="{() => {
+	frame = Helpers.moveHandles(frame)
 	frameList = Helpers.reorderLayers(frame.id, frameList)
 }}"
 >
