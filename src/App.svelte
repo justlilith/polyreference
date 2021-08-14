@@ -23,13 +23,13 @@
 		"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
 		, frameList)
 		.then(frame => {
-		
-		frame.x = 50
-		frame.y = 100
-		frameList = [...frameList, frame]
+			
+			frame.x = 50
+			frame.y = 100
+			frameList = [...frameList, frame]
 			frameList = Helpers.reorderLayers(frame.id, frameList)
 			console.log(frameList.filter(frame => frame.id == frame.id))
-	})
+		})
 	}
 	
 	const handleDragStart = (event, frameid) => {
@@ -55,6 +55,23 @@
 	};
 	
 	const drop = async (event, coords) => {
+		console.log('dropped')
+		event.preventDefault()
+		if (event.dataTransfer.items) {
+			console.log('swell')
+			let file = event.dataTransfer.items[0].getAsFile()
+			if (file.type.includes('image')) {
+				let data = URL.createObjectURL(file);
+				let newFrame = await Helpers.buildFrame(data, frameList);
+				newFrame.x = 50;
+				newFrame.y = 100;
+				newFrame.style = Helpers.calculateStyle(newFrame)
+				newFrame = Helpers.moveHandles(newFrame)
+				frameList = [...frameList, newFrame]
+				// console.log(data)
+			}
+			// console.log(file)
+		}
 		if (!event.dataTransfer.getData("frame id")) {
 			let data = event.dataTransfer.getData("text");
 			let newFrame = await Helpers.buildFrame(data, frameList);
@@ -67,6 +84,7 @@
 		if (event.dataTransfer.dropEffect == "move") {
 			let id = event.dataTransfer.getData("frame id");
 		}
+		// if (event.dataTransfer.
 	};
 	
 	const paste = async (event) => {
@@ -140,15 +158,16 @@ on:mousedown="{event => {
 		setActive()
 	}
 }}"
-on:dragover={(event) => {
+on:dragover|stopPropagation|preventDefault={(event) => {
+	// console.log('dragon')
 	return false;
 }}
-on:drop|preventDefault="{(event) => drop(event, coords)}"
+on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
 on:paste="{(event) => paste(event)}"
 on:mousemove="{(event) => {
 	if (frameList[currentFrame]) {
 		if (resizable == true) {
-		  frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
+			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
 		}
 	}
 }}"
