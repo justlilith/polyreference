@@ -2,9 +2,11 @@ import { autosave } from "./autosave";
 
 let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
-function buildFrame(data:string, frameList:Array<FrameT>):FrameT {
-  if (!data) {
-    return
+
+function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
+  return new Promise((resolve, reject) => {
+    if (!data) {
+    reject()
   }
   let id = frameList.length;
   
@@ -21,10 +23,25 @@ function buildFrame(data:string, frameList:Array<FrameT>):FrameT {
     bottomRightHandle: { ...defaultHandle, x: 380, y: 380 },
     bottomLeftHandle: { ...defaultHandle, y: 380 },
     top: true,
-    active: true
+    active: true,
+    aspect: 0
   };
+
+  let newImage = new Image()
+		newImage.src = frame.url
+		newImage.onload = () => {
+			console.log(newImage.naturalHeight, newImage.naturalWidth)
+			frame.height = newImage.naturalHeight
+			frame.width = newImage.naturalWidth
+      frame.aspect = frame.width / frame.height // 2:1 wideboi
+			frame = fitToScreen(frame)
+			frame.style = calculateStyle(frame)
+			moveHandles(frame)
+      resolve(frame)
+		}
   
-  return frame;
+    // return frame;
+  })
 }
 
 function calculateStyle (frame:FrameT, corner?:string):string {
@@ -204,6 +221,20 @@ function selectAllFrames(frameList) {
   })
 }
 
+function trackMouse (event, frameId, frameList, edge):FrameT {
+  let coords = {x:0, y:0}
+  let frame = frameList[frameId]
+    coords.x = event.movementX;
+    coords.y = event.movementY;
+    frame.width += coords.x
+    frame.height += coords.x / frame.aspect
+    frame.bottomRightHandle.x += coords.x
+    frame.bottomRightHandle.y += frame.height
+    frame = moveHandles(frame)
+    frame.style = calculateStyle(frame)
+  return frame
+};
+
 export { buildFrame
   , calculateStyle
   , clearActiveFrame
@@ -213,6 +244,7 @@ export { buildFrame
   , moveActiveFrame
   , moveHandles
   , purgeFrames
-  , selectAllFrames
   , reorderLayers
+  , selectAllFrames
+  , trackMouse
 }

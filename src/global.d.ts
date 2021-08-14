@@ -14,6 +14,7 @@ interface FrameT {
   bottomLeftHandle: Handle
   top: boolean
   active: boolean
+  aspect: number
 }
 
 interface Handle {

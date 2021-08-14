@@ -73,50 +73,6 @@
     frame.style = `position: fixed; left: ${frame.x}px; top: ${frame.y}px;` + styleConstant + dimensionalConstant
   }
   
-  const calculateStyle = (frame:FrameT, corner?:string):string => {
-    let style:string = ""
-    let addedStyle:string
-    let width = (frame.topRightHandle.x + frame.topRightHandle.width) - frame.topLeftHandle.x
-    let height = (frame.bottomLeftHandle.y + frame.bottomLeftHandle.height) - frame.topLeftHandle.y
-    
-    if (corner) {
-      switch (corner) {
-        case 'tleft':
-        width = frame.topLeftHandle.width
-        height = frame.topLeftHandle.height
-        addedStyle = ` top: ${frame.topLeftHandle.y}px; left: ${frame.topLeftHandle.x}px;`
-        break
-        case 'tright':
-        width = frame.topRightHandle.width
-        height = frame.topRightHandle.height
-        addedStyle = ` top: ${frame.topRightHandle.y}px; left: ${frame.topRightHandle.x}px;`
-        break
-        case 'bleft':
-        width = frame.bottomLeftHandle.width
-        height = frame.bottomLeftHandle.height
-        addedStyle = ` top: ${frame.bottomLeftHandle.y}px; left: ${frame.bottomLeftHandle.x}px;`
-        break
-        case 'bright':
-        width = frame.bottomRightHandle.width
-        height = frame.bottomRightHandle.height
-        addedStyle = ` top: ${frame.bottomRightHandle.y}px; left: ${frame.bottomRightHandle.x}px;`
-        break
-        default:
-        return
-      }
-    }
-    
-    style = `width: ${width}px; height: ${height}px; position: fixed;`
-    
-    if (!corner) {
-      style = style + ` background-image: url('${frame.url}'); top: ${frame.y}px; left: ${frame.x}px;` 
-    }
-    if (corner) {
-      style = style + addedStyle
-    }
-    return style
-  }
-  
   const dispatch = createEventDispatcher()
   
   function forward(frame,event,edge){
@@ -155,7 +111,7 @@ on:dragend="{event => autosave(frameList)}"
 {#if frame.active}
 
 <div class={`${addedClass} handle handle-tleft`} draggable='true'
-style={calculateStyle(frame, 'tleft')}
+style={Helpers.calculateStyle(frame, 'tleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'left')}
 
 >
@@ -166,19 +122,19 @@ on:click="{event => {
 </div>
 
 <div class={`${addedClass} handle handle-tright`} draggable='true'
-style={calculateStyle(frame, 'tright')}
+style={Helpers.calculateStyle(frame, 'tright')}
 on:dragstart={event => offset = handleDragStartResize(event, 'right')}
 ></div>
 
 <div class={`${addedClass} handle handle-bleft`} draggable='true'
-style={calculateStyle(frame, 'bleft')}
+style={Helpers.calculateStyle(frame, 'bleft')}
 on:dragstart={event => offset = handleDragStartResize(event, 'bleft')}
 on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 ></div>
 
 <div
 class={`${addedClass} handle handle-bright`}
-style={calculateStyle(frame, 'bright')}
+style={Helpers.calculateStyle(frame, 'bright')}
 on:mousedown="{event => {
   forward(frame,event,'bright')
 }}"
