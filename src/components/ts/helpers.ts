@@ -1,4 +1,5 @@
 import { autosave } from "./autosave";
+import * as State from "./state";
 
 let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
@@ -6,43 +7,44 @@ let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
   return new Promise((resolve, reject) => {
     if (!data) {
-    reject()
-  }
-  let id = frameList.length;
-  
-  let frame:FrameT = {
-    url: data,
-    width: 400,
-    height: 400,
-    x: 100,
-    y: 100,
-    style: ``,
-    id: id,
-    topLeftHandle: defaultHandle,
-    topRightHandle: { ...defaultHandle, x: 380 },
-    bottomRightHandle: { ...defaultHandle, x: 380, y: 380 },
-    bottomLeftHandle: { ...defaultHandle, y: 380 },
-    top: true,
-    active: true,
-    aspect: 0
-  };
-
-  let newImage = new Image()
-		newImage.src = frame.url
-		newImage.onload = () => {
-			console.log(newImage.naturalHeight, newImage.naturalWidth)
-			frame.height = newImage.naturalHeight
-			frame.width = newImage.naturalWidth
+      reject()
+    }
+    let id = frameList.length;
+    
+    let frame:FrameT = {
+      url: data,
+      width: 400,
+      height: 400,
+      x: 100,
+      y: 100,
+      style: ``,
+      id: id,
+      topLeftHandle: defaultHandle,
+      topRightHandle: { ...defaultHandle, x: 380 },
+      bottomRightHandle: { ...defaultHandle, x: 380, y: 380 },
+      bottomLeftHandle: { ...defaultHandle, y: 380 },
+      top: true,
+      active: true,
+      aspect: 0
+    };
+    
+    let newImage = new Image()
+    newImage.src = frame.url
+    newImage.onload = () => {
+      console.log(newImage.naturalHeight, newImage.naturalWidth)
+      frame.height = newImage.naturalHeight
+      frame.width = newImage.naturalWidth
       frame.aspect = frame.width / frame.height // 2:1 wideboi
-			frame = fitToScreen(frame)
-			frame.style = calculateStyle(frame)
-			moveHandles(frame)
+      frame = fitToScreen(frame)
+      frame.style = calculateStyle(frame)
+      moveHandles(frame)
       resolve(frame)
-		}
-  
+    }
+    
     // return frame;
   })
 }
+
 
 function calculateStyle (frame:FrameT, corner?:string):string {
   let style:string = ""
@@ -89,7 +91,7 @@ function calculateStyle (frame:FrameT, corner?:string):string {
   return style
 }
 
-function clearActiveFrame (frameList) {
+function clearActiveFrame (frameList):FrameT[] {
   return frameList.map(frame => {
     return {...frame, active : false}
   })
@@ -110,7 +112,7 @@ function getActiveFrame (frameList:FrameT[]):FrameT {
   return frameList.filter(frame => frame.top == true)[0]
 }
 
-function handleKeypress(event, frameList?){
+function handleKeypress(event, frameList:FrameT[]){
   // console.log(event)
   switch (event.key) {
     case 'a':
@@ -122,6 +124,19 @@ function handleKeypress(event, frameList?){
       event.preventDefault()
       frameList = clearActiveFrame(frameList)
       autosave(frameList)
+    }
+    break
+    case 'y':
+    if (event.ctrlKey){
+      State.advance()
+    }
+    break
+    case 'z':
+    if (event.ctrlKey && event.shiftKey) {
+      State.advance()
+    } else
+    if (event.ctrlKey){
+      State.reverse()
     }
     break
     case 'Escape':
@@ -197,7 +212,7 @@ function moveHandles(frame: FrameT): FrameT {
   return frame;
 }
 
-function purgeFrames (frameList) {
+function purgeFrames (frameList:FrameT[]) {
   return frameList.filter(frame => {
     return frame !== null || frame !== undefined
   })
@@ -215,7 +230,8 @@ function reorderLayers (frameid,frameList:FrameT[]):Array<FrameT> {
   return newList
 }
 
-function selectAllFrames(frameList) {
+
+function selectAllFrames(frameList:FrameT[]) {
   return frameList.map(frame => {
     return {...frame, active: true}
   })
@@ -224,18 +240,20 @@ function selectAllFrames(frameList) {
 function trackMouse (event, frameId, frameList, edge):FrameT {
   let coords = {x:0, y:0}
   let frame = frameList[frameId]
-    coords.x = event.movementX;
-    coords.y = event.movementY;
-    frame.width += coords.x
-    frame.height += coords.x / frame.aspect
-    frame.bottomRightHandle.x += coords.x
-    frame.bottomRightHandle.y += frame.height
-    frame = moveHandles(frame)
-    frame.style = calculateStyle(frame)
+  coords.x = event.movementX;
+  coords.y = event.movementY;
+  frame.width += coords.x
+  frame.height += coords.x / frame.aspect
+  frame.bottomRightHandle.x += coords.x
+  frame.bottomRightHandle.y += frame.height
+  frame = moveHandles(frame)
+  frame.style = calculateStyle(frame)
   return frame
 };
 
-export { buildFrame
+
+export { 
+  buildFrame
   , calculateStyle
   , clearActiveFrame
   , fitToScreen

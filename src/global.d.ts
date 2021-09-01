@@ -23,3 +23,9 @@ interface Handle {
   x: number
   y: number
 }
+
+interface StateT {
+  currentTrans:string
+  currentState:function
+  framesSnapshot: Array<FrameT>
+}
