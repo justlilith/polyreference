@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { autosave, loadFromLocal } from './components/ts/autosave'
+	import { get } from 'svelte/store'
 	import * as Helpers from './components/ts/helpers'
-	import Frame from "./components/Frame.svelte";
+	import * as State from './components/ts/state'
+	import Frame from "./components/Frame.svelte"
 	import Input from './components/Input.svelte'
+	import { loop_guard } from "svelte/internal";
 	
 	let frameList:FrameT[]
+	let states:StateT[]
 	
 	let id = 0;
 	let coords = { x: 0, y: 0 };
@@ -16,21 +20,45 @@
 	frameList = loadFromLocal('frameList', frameList)
 	console.log(frameList)
 	
-	if (frameList === null || frameList === undefined){
+	if (frameList === null || frameList === undefined || frameList?.length == 0){
 		frameList = new Array()
 		
 		let init = Helpers.buildFrame(
 		"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
 		, frameList)
-		.then(frame => {
+		.then(newFrame => {
 			
-			frame.x = 50
-			frame.y = 100
-			frameList = [...frameList, frame]
-			frameList = Helpers.reorderLayers(frame.id, frameList)
-			console.log(frameList.filter(frame => frame.id == frame.id))
+			newFrame.x = 50
+			newFrame.y = 100
+			newFrame.style = Helpers.calculateStyle(newFrame)
+			newFrame = Helpers.moveHandles(newFrame)
+			frameList.push(newFrame)
+			frameList = Helpers.reorderLayers(newFrame.id, frameList)
+			State.append(frameList)
+			// console.log(frameList.filter(frame => frame.id == frame.id))
+			
+			
 		})
 	}
+
+	State.StateStore.subscribe((currentState)=> {
+		if (currentState) {
+			frameList = currentState.framesSnapshot
+			frameList = frameList.map(frame => {
+				frame = Helpers.moveHandles(frame)
+				return {...frame, style: Helpers.calculateStyle(frame)}
+			})
+		} else {
+			frameList = []
+		}
+	})
+	
+	states = //init
+	[
+	{ currentTrans: ""
+	, currentState:	State.calculate(states, 0, frameList)
+	, framesSnapshot: frameList }
+	]
 	
 	const handleDragStart = (event, frameid) => {
 		event.dataTransfer.setData("frame id", frameid);
@@ -48,9 +76,8 @@
 		let corner = [frameList[id].x, frameList[id].y]; //top left
 		frameList[id].x = coords.x - offset[0];
 		frameList[id].y = coords.y - offset[1];
-		frameList[
-		id
-		].style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px;`;
+		frameList[id]
+		.style = `position:fixed; left:${frameList[id].x}px; top:${frameList[id].y}px;`;
 		return false;
 	};
 	
@@ -58,16 +85,18 @@
 		console.log('dropped')
 		event.preventDefault()
 		if (event.dataTransfer.items) {
-			console.log('swell')
+			// console.log('swell')
 			let file = event.dataTransfer.items[0].getAsFile()
-			if (file.type.includes('image')) {
+			if (file && file.type.includes('image')) {
 				let data = URL.createObjectURL(file);
 				let newFrame = await Helpers.buildFrame(data, frameList);
 				newFrame.x = 50;
 				newFrame.y = 100;
 				newFrame.style = Helpers.calculateStyle(newFrame)
 				newFrame = Helpers.moveHandles(newFrame)
+				// State.append([...frameList, newFrame])
 				frameList = [...frameList, newFrame]
+				State.append(frameList)
 				// console.log(data)
 			}
 			// console.log(file)
@@ -78,14 +107,20 @@
 			newFrame.x = event.clientX;
 			newFrame.y = event.clientY;
 			newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
-			data ? (frameList = [...frameList, newFrame]) : null;
-			frameList = Helpers.reorderLayers(newFrame.id, frameList)
+			let newFrameList = frameList
+			data ? (newFrameList = [...newFrameList, newFrame]) : null;
+			newFrameList = Helpers.reorderLayers(newFrame.id, newFrameList)
+			frameList = newFrameList
+			// State.append(newFrameList)
+			State.append(frameList)
 		}
 		if (event.dataTransfer.dropEffect == "move") {
+			console.log('moved')
 			let id = event.dataTransfer.getData("frame id");
+			State.append(frameList)
 		}
 		// if (event.dataTransfer.
-	};
+	}
 	
 	const paste = async (event) => {
 		let image = event?.clipboardData?.items[0].getAsFile();
@@ -111,8 +146,9 @@
 			data ? (frameList = [...frameList, newFrame]) : null;
 			frameList = Helpers.reorderLayers(newFrame.id, frameList)
 			console.log(frameList.filter(frame => frame.id == newFrame.id))
+			State.append(frameList)
 		}
-	};
+	}
 	
 	let resizable: boolean = false;
 	
@@ -134,7 +170,9 @@
 
 
 <svelte:window
-on:keydown="{(event) => frameList = Helpers.handleKeypress(event, frameList)}"
+on:keydown="{(event) => {
+	Helpers.handleKeypress(event, frameList)
+}}"
 />
 <main
 >
@@ -145,12 +183,8 @@ on:keydown="{(event) => frameList = Helpers.handleKeypress(event, frameList)}"
 
 <div
 id="dropzone"
-
-on:mouseup="{event => {
-	setInactive()
-	autosave(frameList)
-}}"
 on:mousedown="{event => {
+	console.log(event)
 	let target = event.target
 	if (target?.id=='dropzone') {
 		frameList = Helpers.clearActiveFrame(frameList)
@@ -171,6 +205,12 @@ on:mousemove="{(event) => {
 		}
 	}
 }}"
+on:mouseup="{event => {
+	setInactive()
+	State.append(frameList)
+	console.log('what')
+	autosave(frameList)
+}}"
 >
 
 {#if frameList.length > 0}
@@ -183,6 +223,7 @@ on:mousemove="{(event) => {
 on:click="{() => {
 	frame = Helpers.moveHandles(frame)
 	frameList = Helpers.reorderLayers(frame.id, frameList)
+	// State.append(frameList)
 }}"
 >
 <Frame
