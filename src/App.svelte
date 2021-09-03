@@ -34,12 +34,10 @@
 			newFrame = Helpers.moveHandles(newFrame)
 			frameList.push(newFrame)
 			frameList = Helpers.reorderLayers(newFrame.id, frameList)
-			State.append(frameList)
 			// console.log(frameList.filter(frame => frame.id == frame.id))
-			
-			
 		})
 	}
+	State.append(frameList)
 
 	State.StateStore.subscribe((currentState)=> {
 		if (currentState) {
@@ -183,8 +181,8 @@ on:keydown="{(event) => {
 
 <div
 id="dropzone"
-on:mousedown="{event => {
-	console.log(event)
+on:pointerdown="{event => {
+	// console.log(event)
 	let target = event.target
 	if (target?.id=='dropzone') {
 		frameList = Helpers.clearActiveFrame(frameList)
@@ -198,17 +196,17 @@ on:dragover|stopPropagation|preventDefault={(event) => {
 }}
 on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
 on:paste="{(event) => paste(event)}"
-on:mousemove="{(event) => {
-	if (frameList[currentFrame]) {
-		if (resizable == true) {
-			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
+on:pointermove="{(event) => {
+	if (resizable == true) {
+		if (frameList[currentFrame]) {
+				frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
 		}
 	}
 }}"
 on:mouseup="{event => {
 	setInactive()
 	State.append(frameList)
-	console.log('what')
+	// console.log('what')
 	autosave(frameList)
 }}"
 >
