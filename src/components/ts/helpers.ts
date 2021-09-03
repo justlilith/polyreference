@@ -238,14 +238,26 @@ function selectAllFrames(frameList:FrameT[]) {
 }
 
 function trackMouse (event, frameId, frameList, edge):FrameT {
-  let coords = {x:0, y:0}
-  let frame = frameList[frameId]
-  coords.x = event.movementX;
-  coords.y = event.movementY;
-  frame.width += coords.x
-  frame.height += coords.x / frame.aspect
-  frame.bottomRightHandle.x += coords.x
-  frame.bottomRightHandle.y += frame.height
+  let frame:FrameT = frameList[frameId]
+  
+  switch (event.pointerType) {
+    case 'touch':
+    console.log(event)
+    const origin = {x: frame.x, y: frame.y}
+    frame.width = event.clientX - origin.x
+    frame.height = frame.width / frame.aspect
+    break
+    default:
+    case 'mouse':
+    let coords = {x:0, y:0}
+    coords.x = event.movementX;
+    coords.y = event.movementY;
+    frame.width += coords.x
+    frame.height += coords.x / frame.aspect
+    frame.bottomRightHandle.x += coords.x
+    frame.bottomRightHandle.y += frame.height
+    break
+  }
   frame = moveHandles(frame)
   frame.style = calculateStyle(frame)
   return frame

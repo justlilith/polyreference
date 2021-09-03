@@ -135,7 +135,7 @@ on:dragover|preventDefault={event => handleDragResize(event, 'bleft')}
 <div
 class={`${addedClass} handle handle-bright`}
 style={Helpers.calculateStyle(frame, 'bright')}
-on:mousedown="{event => {
+on:pointerdown="{event => {
   forward(frame,event,'bright')
 }}"
 >

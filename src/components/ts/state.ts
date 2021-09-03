@@ -2,7 +2,11 @@ import { writable, get } from 'svelte/store'
 import { autosave, saveToLocal } from './autosave'
 
 let statePointer:number = 0
-let _stateList:StateT[] = []
+let stateList:StateT[] = [{
+  currentTrans: ''
+  , currentState: ''
+  , framesSnapshot: []
+}]
 
 let initState:StateT = {
   currentTrans: ''
@@ -16,18 +20,18 @@ function advance () {
   StateStore.update(() => {
     statePointer += 1
     // let stateList = get(StateStore)
-    if (statePointer === _stateList.length) {
-      statePointer = _stateList.length - 1
+    if (statePointer === stateList.length) {
+      statePointer = stateList.length - 1
     }
-    return _stateList[statePointer]
+    return stateList[statePointer]
   })
-  // statePointer = _stateList.length - 1
-  // return _stateList[_stateList.length - 1]
+  // statePointer = stateList.length - 1
+  // return stateList[stateList.length - 1]
 }
 
 function append (frameList:FrameT[]) {
   statePointer += 1
-  const currentState:StateT[] = _stateList
+  const currentState:StateT[] = stateList
   const newState = {
     // ...currentState[currentState.length -1]
     ...currentState[statePointer -1]
@@ -35,9 +39,9 @@ function append (frameList:FrameT[]) {
   }
   currentState.push(newState)
   StateStore.update(() => {
-    console.log('%cstate updated', 'color:green')
-    console.log(currentState)
-    console.log(statePointer)
+    // console.log('%cstate updated', 'color:green')
+    // console.log(currentState)
+    // console.log(statePointer)
     return newState
   })
 }
@@ -49,7 +53,6 @@ function calculate (states, index, framesSnapshot:FrameT[]) {
 function reverse () {
   console.log('reversing history uwu ✨')
   StateStore.update(() => {
-    let stateList = _stateList
     
     if (statePointer == 0) {
       autosave([])
