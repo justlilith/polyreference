@@ -114,7 +114,6 @@ function getActiveFrame (frameList:FrameT[]):FrameT {
 
 
 function handleKeypress(event, frameList:FrameT[]){
-  event.preventDefault()
   console.log(event)
   switch (event.key) {
     case 'a':
