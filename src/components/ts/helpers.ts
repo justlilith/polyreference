@@ -112,17 +112,22 @@ function getActiveFrame (frameList:FrameT[]):FrameT {
   return frameList.filter(frame => frame.top == true)[0]
 }
 
+
 function handleKeypress(event, frameList:FrameT[]){
-  // console.log(event)
+  event.preventDefault()
+  console.log(event)
   switch (event.key) {
     case 'a':
     if (event.ctrlKey){
       frameList = selectAllFrames(frameList)
+      State.append(frameList)
       autosave(frameList)
     }
-    if (event.ctrlKey && event.shiftKey){
-      event.preventDefault()
+    break
+    case 'A':
+    if (event.ctrlKey){
       frameList = clearActiveFrame(frameList)
+      State.append(frameList)
       autosave(frameList)
     }
     break
@@ -132,36 +137,45 @@ function handleKeypress(event, frameList:FrameT[]){
     }
     break
     case 'z':
-    if (event.ctrlKey && event.shiftKey) {
-      State.advance()
-    } else
     if (event.ctrlKey){
       State.reverse()
     }
     break
+    case 'Z':
+    if (event.ctrlKey) {
+      console.log('yay~')
+      State.advance()
+    }
+    break
     case 'Escape':
     frameList = clearActiveFrame(frameList)
+    State.append(frameList)
     autosave(frameList)
     break
     case 'Delete':
     case 'Backspace':
     frameList = frameList.filter(frame => frame.active == false)
+    State.append(frameList)
     autosave(frameList)
     break
     case 'ArrowLeft':
     frameList = moveActiveFrame(frameList,'left')
+    State.append(frameList)
     autosave(frameList)
     break
     case 'ArrowRight':
     frameList = moveActiveFrame(frameList,'right')
+    State.append(frameList)
     autosave(frameList)
     break
     case 'ArrowUp':
     frameList = moveActiveFrame(frameList,'up')
+    State.append(frameList)
     autosave(frameList)
     break
     case 'ArrowDown':
     frameList = moveActiveFrame(frameList,'down')
+    State.append(frameList)
     autosave(frameList)
     break
     default:
@@ -198,6 +212,29 @@ function moveActiveFrame(frameList,direction){
   // console.log(active)
   return frameList
 }
+
+
+function moveFrame (event, frame:FrameT, offset):FrameT {
+  let coords = {x:0, y:0}
+  coords.x = event.movementX;
+  coords.y = event.movementY;
+  switch (event.pointerType) {
+    case 'touch':
+    console.log(origin)
+    frame.x = event.clientX - offset[0]
+    frame.y = event.clientY - offset[1]
+    break
+    default:
+    case 'mouse':
+    frame.x += coords.x
+    frame.y += coords.y
+    break
+  }
+  frame = moveHandles(frame)
+  frame.style = calculateStyle(frame)
+  return frame
+}
+
 
 function moveHandles(frame: FrameT): FrameT {
   frame.topLeftHandle.x = frame.x;
@@ -272,6 +309,7 @@ export {
   , getActiveFrame
   , handleKeypress
   , moveActiveFrame
+  , moveFrame
   , moveHandles
   , purgeFrames
   , reorderLayers

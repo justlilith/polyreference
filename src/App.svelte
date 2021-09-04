@@ -149,6 +149,8 @@
 	}
 	
 	let resizable: boolean = false;
+
+	let pannable: boolean = false;
 	
 	const setActive = () => {
 		resizable = true;
@@ -186,6 +188,12 @@ on:pointerdown="{event => {
 	let target = event.target
 	if (target?.id=='dropzone') {
 		frameList = Helpers.clearActiveFrame(frameList)
+		pannable = true
+		offset = [
+			  event.clientX - frameList[0]?.x
+			, event.clientY - frameList[0]?.y
+		]
+		// console.log(offset)
 	} else {
 		setActive()
 	}
@@ -202,9 +210,16 @@ on:pointermove="{(event) => {
 				frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
 		}
 	}
+	if (pannable) {
+		frameList = frameList.map(frame => {
+			return Helpers.moveFrame(event, frame, offset)
+			// return frame
+		})
+	}
 }}"
 on:mouseup="{event => {
 	setInactive()
+	pannable = false
 	State.append(frameList)
 	// console.log('what')
 	autosave(frameList)

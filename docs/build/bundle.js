@@ -846,16 +846,20 @@ var app = (function () {
         return frameList.filter(frame => frame.top == true)[0];
     }
     function handleKeypress(event, frameList) {
-        // console.log(event)
+        event.preventDefault();
+        console.log(event);
         switch (event.key) {
             case 'a':
                 if (event.ctrlKey) {
                     frameList = selectAllFrames(frameList);
+                    append(frameList);
                     autosave(frameList);
                 }
-                if (event.ctrlKey && event.shiftKey) {
-                    event.preventDefault();
+                break;
+            case 'A':
+                if (event.ctrlKey) {
                     frameList = clearActiveFrame(frameList);
+                    append(frameList);
                     autosave(frameList);
                 }
                 break;
@@ -865,36 +869,45 @@ var app = (function () {
                 }
                 break;
             case 'z':
-                if (event.ctrlKey && event.shiftKey) {
-                    advance();
-                }
-                else if (event.ctrlKey) {
+                if (event.ctrlKey) {
                     reverse();
+                }
+                break;
+            case 'Z':
+                if (event.ctrlKey) {
+                    console.log('yay~');
+                    advance();
                 }
                 break;
             case 'Escape':
                 frameList = clearActiveFrame(frameList);
+                append(frameList);
                 autosave(frameList);
                 break;
             case 'Delete':
             case 'Backspace':
                 frameList = frameList.filter(frame => frame.active == false);
+                append(frameList);
                 autosave(frameList);
                 break;
             case 'ArrowLeft':
                 frameList = moveActiveFrame(frameList, 'left');
+                append(frameList);
                 autosave(frameList);
                 break;
             case 'ArrowRight':
                 frameList = moveActiveFrame(frameList, 'right');
+                append(frameList);
                 autosave(frameList);
                 break;
             case 'ArrowUp':
                 frameList = moveActiveFrame(frameList, 'up');
+                append(frameList);
                 autosave(frameList);
                 break;
             case 'ArrowDown':
                 frameList = moveActiveFrame(frameList, 'down');
+                append(frameList);
                 autosave(frameList);
                 break;
         }
@@ -924,6 +937,26 @@ var app = (function () {
         frameList[active.id].style = calculateStyle(active);
         // console.log(active)
         return frameList;
+    }
+    function moveFrame(event, frame, offset) {
+        let coords = { x: 0, y: 0 };
+        coords.x = event.movementX;
+        coords.y = event.movementY;
+        switch (event.pointerType) {
+            case 'touch':
+                console.log(origin);
+                frame.x = event.clientX - offset[0];
+                frame.y = event.clientY - offset[1];
+                break;
+            default:
+            case 'mouse':
+                frame.x += coords.x;
+                frame.y += coords.y;
+                break;
+        }
+        frame = moveHandles(frame);
+        frame.style = calculateStyle(frame);
+        return frame;
     }
     function moveHandles(frame) {
         frame.topLeftHandle.x = frame.x;
@@ -992,6 +1025,7 @@ var app = (function () {
         getActiveFrame: getActiveFrame,
         handleKeypress: handleKeypress,
         moveActiveFrame: moveActiveFrame,
+        moveFrame: moveFrame,
         moveHandles: moveHandles,
         purgeFrames: purgeFrames,
         reorderLayers: reorderLayers,
@@ -5364,13 +5398,13 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[28] = list[i];
-    	child_ctx[29] = list;
-    	child_ctx[30] = i;
+    	child_ctx[29] = list[i];
+    	child_ctx[30] = list;
+    	child_ctx[31] = i;
     	return child_ctx;
     }
 
-    // (204:0) {#if frameList.length > 0}
+    // (218:0) {#if frameList.length > 0}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -5403,7 +5437,7 @@ var app = (function () {
     			current = true;
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*frameList, Helpers, currentFrame, currentEdge*/ 13) {
+    			if (dirty[0] & /*frameList, currentFrame, currentEdge*/ 25) {
     				each_value = /*frameList*/ ctx[0];
     				validate_each_argument(each_value);
     				let i;
@@ -5459,14 +5493,14 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(204:0) {#if frameList.length > 0}",
+    		source: "(218:0) {#if frameList.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (209:0) {:else}
+    // (223:0) {:else}
     function create_else_block(ctx) {
     	let div;
     	let frame;
@@ -5477,16 +5511,16 @@ var app = (function () {
     	let dispose;
 
     	function frame_frameList_binding(value) {
-    		/*frame_frameList_binding*/ ctx[11](value);
+    		/*frame_frameList_binding*/ ctx[13](value);
     	}
 
     	function click_handler() {
-    		return /*click_handler*/ ctx[12](/*frame*/ ctx[28]);
+    		return /*click_handler*/ ctx[14](/*frame*/ ctx[29]);
     	}
 
     	let frame_props = {
-    		addedClass: `${/*frame*/ ctx[28]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[28]?.active == true ? 'active' : ''}`,
-    		frame: /*frame*/ ctx[28]
+    		addedClass: `${/*frame*/ ctx[29]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[29]?.active == true ? 'active' : ''}`,
+    		frame: /*frame*/ ctx[29]
     	};
 
     	if (/*frameList*/ ctx[0] !== void 0) {
@@ -5496,10 +5530,10 @@ var app = (function () {
     	frame = new Frame({ props: frame_props, $$inline: true });
     	binding_callbacks.push(() => bind(frame, 'frameList', frame_frameList_binding));
     	frame.$on("click", click_handler);
-    	frame.$on("message", /*message_handler*/ ctx[13]);
+    	frame.$on("message", /*message_handler*/ ctx[15]);
 
     	function click_handler_1() {
-    		return /*click_handler_1*/ ctx[14](/*frame*/ ctx[28], /*each_value*/ ctx[29], /*frame_index*/ ctx[30]);
+    		return /*click_handler_1*/ ctx[16](/*frame*/ ctx[29], /*each_value*/ ctx[30], /*frame_index*/ ctx[31]);
     	}
 
     	const block = {
@@ -5507,7 +5541,7 @@ var app = (function () {
     			div = element("div");
     			create_component(frame.$$.fragment);
     			t = space();
-    			add_location(div, file, 209, 0, 7693);
+    			add_location(div, file, 223, 0, 8014);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -5523,10 +5557,10 @@ var app = (function () {
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
     			const frame_changes = {};
-    			if (dirty & /*frameList*/ 1) frame_changes.addedClass = `${/*frame*/ ctx[28]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[28]?.active == true ? 'active' : ''}`;
-    			if (dirty & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[28];
+    			if (dirty[0] & /*frameList*/ 1) frame_changes.addedClass = `${/*frame*/ ctx[29]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[29]?.active == true ? 'active' : ''}`;
+    			if (dirty[0] & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[29];
 
-    			if (!updating_frameList && dirty & /*frameList*/ 1) {
+    			if (!updating_frameList && dirty[0] & /*frameList*/ 1) {
     				updating_frameList = true;
     				frame_changes.frameList = /*frameList*/ ctx[0];
     				add_flush_callback(() => updating_frameList = false);
@@ -5555,14 +5589,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(209:0) {:else}",
+    		source: "(223:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (206:0) {#if frame == null}
+    // (220:0) {#if frame == null}
     function create_if_block_1(ctx) {
     	let t_value = (/*frameList*/ ctx[0] = purgeFrames(/*frameList*/ ctx[0])) + "";
     	let t;
@@ -5575,7 +5609,7 @@ var app = (function () {
     			insert_dev(target, t, anchor);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*frameList*/ 1 && t_value !== (t_value = (/*frameList*/ ctx[0] = purgeFrames(/*frameList*/ ctx[0])) + "")) set_data_dev(t, t_value);
+    			if (dirty[0] & /*frameList*/ 1 && t_value !== (t_value = (/*frameList*/ ctx[0] = purgeFrames(/*frameList*/ ctx[0])) + "")) set_data_dev(t, t_value);
     		},
     		i: noop,
     		o: noop,
@@ -5588,14 +5622,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(206:0) {#if frame == null}",
+    		source: "(220:0) {#if frame == null}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (205:0) {#each frameList as frame}
+    // (219:0) {#each frameList as frame}
     function create_each_block(ctx) {
     	let current_block_type_index;
     	let if_block;
@@ -5605,7 +5639,7 @@ var app = (function () {
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
-    		if (/*frame*/ ctx[28] == null) return 0;
+    		if (/*frame*/ ctx[29] == null) return 0;
     		return 1;
     	}
 
@@ -5668,7 +5702,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(205:0) {#each frameList as frame}",
+    		source: "(219:0) {#each frameList as frame}",
     		ctx
     	});
 
@@ -5686,7 +5720,7 @@ var app = (function () {
     	let dispose;
 
     	function input_frameList_binding(value) {
-    		/*input_frameList_binding*/ ctx[10](value);
+    		/*input_frameList_binding*/ ctx[12](value);
     	}
 
     	let input_props = {};
@@ -5708,9 +5742,9 @@ var app = (function () {
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
     			attr_dev(div, "class", "svelte-8e6748");
-    			add_location(div, file, 171, 0, 6787);
+    			add_location(div, file, 172, 0, 6810);
     			attr_dev(main, "class", "svelte-8e6748");
-    			add_location(main, file, 164, 0, 6737);
+    			add_location(main, file, 165, 0, 6760);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -5725,22 +5759,22 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(window, "keydown", /*keydown_handler*/ ctx[9], false, false, false),
-    					listen_dev(div, "pointerdown", /*pointerdown_handler*/ ctx[15], false, false, false),
+    					listen_dev(window, "keydown", /*keydown_handler*/ ctx[11], false, false, false),
+    					listen_dev(div, "pointerdown", /*pointerdown_handler*/ ctx[17], false, false, false),
     					listen_dev(div, "dragover", stop_propagation(prevent_default(dragover_handler)), false, true, true),
-    					listen_dev(div, "drop", stop_propagation(prevent_default(/*drop_handler*/ ctx[16])), false, true, true),
-    					listen_dev(div, "paste", /*paste_handler*/ ctx[17], false, false, false),
-    					listen_dev(div, "pointermove", /*pointermove_handler*/ ctx[18], false, false, false),
-    					listen_dev(div, "mouseup", /*mouseup_handler*/ ctx[19], false, false, false)
+    					listen_dev(div, "drop", stop_propagation(prevent_default(/*drop_handler*/ ctx[18])), false, true, true),
+    					listen_dev(div, "paste", /*paste_handler*/ ctx[19], false, false, false),
+    					listen_dev(div, "pointermove", /*pointermove_handler*/ ctx[20], false, false, false),
+    					listen_dev(div, "mouseup", /*mouseup_handler*/ ctx[21], false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
-    		p: function update(ctx, [dirty]) {
+    		p: function update(ctx, dirty) {
     			const input_changes = {};
 
-    			if (!updating_frameList && dirty & /*frameList*/ 1) {
+    			if (!updating_frameList && dirty[0] & /*frameList*/ 1) {
     				updating_frameList = true;
     				input_changes.frameList = /*frameList*/ ctx[0];
     				add_flush_callback(() => updating_frameList = false);
@@ -5752,7 +5786,7 @@ var app = (function () {
     				if (if_block) {
     					if_block.p(ctx, dirty);
 
-    					if (dirty & /*frameList*/ 1) {
+    					if (dirty[0] & /*frameList*/ 1) {
     						transition_in(if_block, 1);
     					}
     				} else {
@@ -5901,7 +5935,7 @@ var app = (function () {
     		event.dataTransfer.dropEffect = "move";
     		$$invalidate(1, coords.x = event.clientX, coords);
     		$$invalidate(1, coords.y = event.clientY, coords);
-    		offset = [coords.x - frameList[frameid].x, coords.y - frameList[frameid].y];
+    		$$invalidate(2, offset = [coords.x - frameList[frameid].x, coords.y - frameList[frameid].y]);
     		return offset; // shouldn't change on drag
     	};
 
@@ -6006,14 +6040,15 @@ var app = (function () {
     	});
 
     	let resizable = false;
+    	let pannable = false;
 
     	const setActive = () => {
-    		$$invalidate(4, resizable = true);
+    		$$invalidate(5, resizable = true);
     	};
 
     	const setInactive = () => {
-    		$$invalidate(4, resizable = false);
-    		$$invalidate(2, currentFrame = null);
+    		$$invalidate(5, resizable = false);
+    		$$invalidate(3, currentFrame = null);
     	};
 
     	const dispatch = createEventDispatcher();
@@ -6048,8 +6083,8 @@ var app = (function () {
 
     	const message_handler = message => {
     		let currentMessage = message;
-    		$$invalidate(2, currentFrame = currentMessage?.detail?.frame.id);
-    		$$invalidate(3, currentEdge = currentMessage?.detail?.edge);
+    		$$invalidate(3, currentFrame = currentMessage?.detail?.frame.id);
+    		$$invalidate(4, currentEdge = currentMessage?.detail?.edge);
     	};
 
     	const click_handler_1 = (frame, each_value, frame_index) => {
@@ -6063,8 +6098,10 @@ var app = (function () {
 
     		if (target?.id == 'dropzone') {
     			$$invalidate(0, frameList = clearActiveFrame(frameList));
+    			$$invalidate(6, pannable = true);
+    			$$invalidate(2, offset = [event.clientX - frameList[0]?.x, event.clientY - frameList[0]?.y]);
     		} else {
-    			setActive();
+    			setActive(); // console.log(offset)
     		}
     	};
 
@@ -6077,10 +6114,17 @@ var app = (function () {
     				$$invalidate(0, frameList[currentFrame] = trackMouse(event, currentFrame, frameList), frameList);
     			}
     		}
+
+    		if (pannable) {
+    			$$invalidate(0, frameList = frameList.map(frame => {
+    				return moveFrame(event, frame, offset);
+    			})); // return frame
+    		}
     	};
 
     	const mouseup_handler = event => {
     		setInactive();
+    		$$invalidate(6, pannable = false);
     		append(frameList);
 
     		// console.log('what')
@@ -6110,6 +6154,7 @@ var app = (function () {
     		drop,
     		paste,
     		resizable,
+    		pannable,
     		setActive,
     		setInactive,
     		dispatch,
@@ -6122,10 +6167,11 @@ var app = (function () {
     		if ('states' in $$props) states = $$props.states;
     		if ('id' in $$props) id = $$props.id;
     		if ('coords' in $$props) $$invalidate(1, coords = $$props.coords);
-    		if ('offset' in $$props) offset = $$props.offset;
-    		if ('currentFrame' in $$props) $$invalidate(2, currentFrame = $$props.currentFrame);
-    		if ('currentEdge' in $$props) $$invalidate(3, currentEdge = $$props.currentEdge);
-    		if ('resizable' in $$props) $$invalidate(4, resizable = $$props.resizable);
+    		if ('offset' in $$props) $$invalidate(2, offset = $$props.offset);
+    		if ('currentFrame' in $$props) $$invalidate(3, currentFrame = $$props.currentFrame);
+    		if ('currentEdge' in $$props) $$invalidate(4, currentEdge = $$props.currentEdge);
+    		if ('resizable' in $$props) $$invalidate(5, resizable = $$props.resizable);
+    		if ('pannable' in $$props) $$invalidate(6, pannable = $$props.pannable);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -6135,9 +6181,11 @@ var app = (function () {
     	return [
     		frameList,
     		coords,
+    		offset,
     		currentFrame,
     		currentEdge,
     		resizable,
+    		pannable,
     		drop,
     		paste,
     		setActive,
@@ -6159,7 +6207,7 @@ var app = (function () {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, {});
+    		init(this, options, instance, create_fragment, safe_not_equal, {}, null, [-1, -1]);
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
