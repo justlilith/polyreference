@@ -34,12 +34,10 @@
 			newFrame = Helpers.moveHandles(newFrame)
 			frameList.push(newFrame)
 			frameList = Helpers.reorderLayers(newFrame.id, frameList)
-			State.append(frameList)
 			// console.log(frameList.filter(frame => frame.id == frame.id))
-			
-			
 		})
 	}
+	State.append(frameList)
 
 	State.StateStore.subscribe((currentState)=> {
 		if (currentState) {
@@ -151,6 +149,8 @@
 	}
 	
 	let resizable: boolean = false;
+
+	let pannable: boolean = false;
 	
 	const setActive = () => {
 		resizable = true;
@@ -183,11 +183,17 @@ on:keydown="{(event) => {
 
 <div
 id="dropzone"
-on:mousedown="{event => {
-	console.log(event)
+on:pointerdown="{event => {
+	// console.log(event)
 	let target = event.target
 	if (target?.id=='dropzone') {
 		frameList = Helpers.clearActiveFrame(frameList)
+		pannable = true
+		offset = [
+			  event.clientX - frameList[0]?.x
+			, event.clientY - frameList[0]?.y
+		]
+		// console.log(offset)
 	} else {
 		setActive()
 	}
@@ -198,17 +204,24 @@ on:dragover|stopPropagation|preventDefault={(event) => {
 }}
 on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
 on:paste="{(event) => paste(event)}"
-on:mousemove="{(event) => {
-	if (frameList[currentFrame]) {
-		if (resizable == true) {
-			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
+on:pointermove="{(event) => {
+	if (resizable == true) {
+		if (frameList[currentFrame]) {
+				frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
 		}
+	}
+	if (pannable) {
+		frameList = frameList.map(frame => {
+			return Helpers.moveFrame(event, frame, offset)
+			// return frame
+		})
 	}
 }}"
 on:mouseup="{event => {
 	setInactive()
+	pannable = false
 	State.append(frameList)
-	console.log('what')
+	// console.log('what')
 	autosave(frameList)
 }}"
 >
