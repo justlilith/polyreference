@@ -770,7 +770,8 @@ var app = (function () {
                 bottomLeftHandle: Object.assign(Object.assign({}, defaultHandle), { y: 380 }),
                 top: true,
                 active: true,
-                aspect: 0
+                aspect: 0,
+                offset: [0, 0]
             };
             let newImage = new Image();
             newImage.src = frame.url;
@@ -846,7 +847,6 @@ var app = (function () {
         return frameList.filter(frame => frame.top == true)[0];
     }
     function handleKeypress(event, frameList) {
-        event.preventDefault();
         console.log(event);
         switch (event.key) {
             case 'a':
@@ -939,23 +939,25 @@ var app = (function () {
         return frameList;
     }
     function moveFrame(event, frame, offset) {
-        let coords = { x: 0, y: 0 };
-        coords.x = event.movementX;
-        coords.y = event.movementY;
-        switch (event.pointerType) {
-            case 'touch':
-                console.log(origin);
-                frame.x = event.clientX - offset[0];
-                frame.y = event.clientY - offset[1];
-                break;
-            default:
-            case 'mouse':
-                frame.x += coords.x;
-                frame.y += coords.y;
-                break;
+        if ((event === null || event === void 0 ? void 0 : event.pointerType) === 'mouse') {
+            let coords = { x: 0, y: 0 };
+            coords.x = event.movementX;
+            coords.y = event.movementY;
+            frame.x += coords.x;
+            frame.y += coords.y;
+        }
+        else {
+            // console.log(event)
+            frame.x = event.changedTouches[0].clientX - offset[0];
+            frame.y = event.changedTouches[0].clientY - offset[1];
+            // console.log(event.changedTouches[0].clientX)
+            // console.log(event.targetTouches[0].clientX + offset[0])
+            console.log(offset[0]);
+            // console.log(frame.x)
         }
         frame = moveHandles(frame);
         frame.style = calculateStyle(frame);
+        // console.log(frame)
         return frame;
     }
     function moveHandles(frame) {
@@ -990,6 +992,35 @@ var app = (function () {
         return frameList.map(frame => {
             return Object.assign(Object.assign({}, frame), { active: true });
         });
+    }
+    // hey this needs to map over the filterlist instead of using css transforms
+    function touchZoomHandler(frameList, event, startingScale) {
+        event.preventDefault();
+        let transOptions = { transfomScale: 1.0,
+            center: [200, 200]
+        };
+        let pointer1 = event.targetTouches[0];
+        let pointer2 = event.targetTouches[1];
+        let leftOffset = Math.abs(pointer1.clientX + pointer2.clientX);
+        let topOffset = Math.abs(pointer1.clientY + pointer2.clientY);
+        let width = Math.abs(pointer1.clientX - pointer2.clientX);
+        Math.abs(pointer1.clientY - pointer2.clientY);
+        // console.log(width)
+        // let scaleCenter = [width/2, height/2]
+        // let scale = (width * height)
+        transOptions.transfomScale = width / startingScale * 0.1;
+        // console.log(transOptions.transfomScale)
+        transOptions.center = [leftOffset / 2, topOffset / 2];
+        frameList.forEach(frame => {
+            frame.x = frame.x * transOptions.transfomScale;
+            frame.y = frame.y * transOptions.transfomScale;
+            frame.width = frame.width * transOptions.transfomScale;
+            frame.height *= transOptions.transfomScale;
+            frame = moveHandles(frame);
+            frame.style = calculateStyle(frame);
+            return frame;
+        });
+        return frameList;
     }
     function trackMouse(event, frameId, frameList, edge) {
         let frame = frameList[frameId];
@@ -1030,6 +1061,7 @@ var app = (function () {
         purgeFrames: purgeFrames,
         reorderLayers: reorderLayers,
         selectAllFrames: selectAllFrames,
+        touchZoomHandler: touchZoomHandler,
         trackMouse: trackMouse
     });
 
@@ -5398,13 +5430,13 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[29] = list[i];
-    	child_ctx[30] = list;
-    	child_ctx[31] = i;
+    	child_ctx[34] = list[i];
+    	child_ctx[35] = list;
+    	child_ctx[36] = i;
     	return child_ctx;
     }
 
-    // (218:0) {#if frameList.length > 0}
+    // (266:0) {#if frameList.length > 0}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -5437,7 +5469,7 @@ var app = (function () {
     			current = true;
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*frameList, currentFrame, currentEdge*/ 25) {
+    			if (dirty[0] & /*frameList, currentFrame, currentEdge*/ 13) {
     				each_value = /*frameList*/ ctx[0];
     				validate_each_argument(each_value);
     				let i;
@@ -5493,59 +5525,59 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(218:0) {#if frameList.length > 0}",
+    		source: "(266:0) {#if frameList.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (223:0) {:else}
+    // (271:0) {:else}
     function create_else_block(ctx) {
     	let div;
-    	let frame;
+    	let frame_1;
     	let updating_frameList;
     	let t;
     	let current;
     	let mounted;
     	let dispose;
 
-    	function frame_frameList_binding(value) {
-    		/*frame_frameList_binding*/ ctx[13](value);
+    	function frame_1_frameList_binding(value) {
+    		/*frame_1_frameList_binding*/ ctx[14](value);
     	}
 
     	function click_handler() {
-    		return /*click_handler*/ ctx[14](/*frame*/ ctx[29]);
+    		return /*click_handler*/ ctx[15](/*frame*/ ctx[34]);
     	}
 
-    	let frame_props = {
-    		addedClass: `${/*frame*/ ctx[29]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[29]?.active == true ? 'active' : ''}`,
-    		frame: /*frame*/ ctx[29]
+    	let frame_1_props = {
+    		addedClass: `${/*frame*/ ctx[34]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[34]?.active == true ? 'active' : ''}`,
+    		frame: /*frame*/ ctx[34]
     	};
 
     	if (/*frameList*/ ctx[0] !== void 0) {
-    		frame_props.frameList = /*frameList*/ ctx[0];
+    		frame_1_props.frameList = /*frameList*/ ctx[0];
     	}
 
-    	frame = new Frame({ props: frame_props, $$inline: true });
-    	binding_callbacks.push(() => bind(frame, 'frameList', frame_frameList_binding));
-    	frame.$on("click", click_handler);
-    	frame.$on("message", /*message_handler*/ ctx[15]);
+    	frame_1 = new Frame({ props: frame_1_props, $$inline: true });
+    	binding_callbacks.push(() => bind(frame_1, 'frameList', frame_1_frameList_binding));
+    	frame_1.$on("click", click_handler);
+    	frame_1.$on("message", /*message_handler*/ ctx[16]);
 
     	function click_handler_1() {
-    		return /*click_handler_1*/ ctx[16](/*frame*/ ctx[29], /*each_value*/ ctx[30], /*frame_index*/ ctx[31]);
+    		return /*click_handler_1*/ ctx[17](/*frame*/ ctx[34], /*each_value*/ ctx[35], /*frame_index*/ ctx[36]);
     	}
 
     	const block = {
     		c: function create() {
     			div = element("div");
-    			create_component(frame.$$.fragment);
+    			create_component(frame_1.$$.fragment);
     			t = space();
-    			add_location(div, file, 223, 0, 8014);
+    			add_location(div, file, 271, 0, 9414);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			mount_component(frame, div, null);
+    			mount_component(frame_1, div, null);
     			append_dev(div, t);
     			current = true;
 
@@ -5556,30 +5588,30 @@ var app = (function () {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			const frame_changes = {};
-    			if (dirty[0] & /*frameList*/ 1) frame_changes.addedClass = `${/*frame*/ ctx[29]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[29]?.active == true ? 'active' : ''}`;
-    			if (dirty[0] & /*frameList*/ 1) frame_changes.frame = /*frame*/ ctx[29];
+    			const frame_1_changes = {};
+    			if (dirty[0] & /*frameList*/ 1) frame_1_changes.addedClass = `${/*frame*/ ctx[34]?.top == true ? 'zindexMax' : ''} ${/*frame*/ ctx[34]?.active == true ? 'active' : ''}`;
+    			if (dirty[0] & /*frameList*/ 1) frame_1_changes.frame = /*frame*/ ctx[34];
 
     			if (!updating_frameList && dirty[0] & /*frameList*/ 1) {
     				updating_frameList = true;
-    				frame_changes.frameList = /*frameList*/ ctx[0];
+    				frame_1_changes.frameList = /*frameList*/ ctx[0];
     				add_flush_callback(() => updating_frameList = false);
     			}
 
-    			frame.$set(frame_changes);
+    			frame_1.$set(frame_1_changes);
     		},
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(frame.$$.fragment, local);
+    			transition_in(frame_1.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(frame.$$.fragment, local);
+    			transition_out(frame_1.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
-    			destroy_component(frame);
+    			destroy_component(frame_1);
     			mounted = false;
     			dispose();
     		}
@@ -5589,14 +5621,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(223:0) {:else}",
+    		source: "(271:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (220:0) {#if frame == null}
+    // (268:0) {#if frame == null}
     function create_if_block_1(ctx) {
     	let t_value = (/*frameList*/ ctx[0] = purgeFrames(/*frameList*/ ctx[0])) + "";
     	let t;
@@ -5622,14 +5654,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(220:0) {#if frame == null}",
+    		source: "(268:0) {#if frame == null}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (219:0) {#each frameList as frame}
+    // (267:0) {#each frameList as frame}
     function create_each_block(ctx) {
     	let current_block_type_index;
     	let if_block;
@@ -5639,7 +5671,7 @@ var app = (function () {
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
-    		if (/*frame*/ ctx[29] == null) return 0;
+    		if (/*frame*/ ctx[34] == null) return 0;
     		return 1;
     	}
 
@@ -5702,7 +5734,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(219:0) {#each frameList as frame}",
+    		source: "(267:0) {#each frameList as frame}",
     		ctx
     	});
 
@@ -5720,7 +5752,7 @@ var app = (function () {
     	let dispose;
 
     	function input_frameList_binding(value) {
-    		/*input_frameList_binding*/ ctx[12](value);
+    		/*input_frameList_binding*/ ctx[13](value);
     	}
 
     	let input_props = {};
@@ -5741,10 +5773,10 @@ var app = (function () {
     			div = element("div");
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
-    			attr_dev(div, "class", "svelte-8e6748");
-    			add_location(div, file, 172, 0, 6810);
-    			attr_dev(main, "class", "svelte-8e6748");
-    			add_location(main, file, 165, 0, 6760);
+    			attr_dev(div, "class", "svelte-6hj41f");
+    			add_location(div, file, 174, 0, 6849);
+    			attr_dev(main, "class", "svelte-6hj41f");
+    			add_location(main, file, 167, 0, 6799);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -5755,17 +5787,20 @@ var app = (function () {
     			append_dev(main, t);
     			append_dev(main, div);
     			if (if_block) if_block.m(div, null);
+    			/*div_binding*/ ctx[18](div);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(window, "keydown", /*keydown_handler*/ ctx[11], false, false, false),
-    					listen_dev(div, "pointerdown", /*pointerdown_handler*/ ctx[17], false, false, false),
+    					listen_dev(window, "keydown", /*keydown_handler*/ ctx[12], false, false, false),
+    					listen_dev(div, "touchstart", /*touchstart_handler*/ ctx[19], false, false, false),
+    					listen_dev(div, "touchmove", /*touchmove_handler*/ ctx[20], false, false, false),
+    					listen_dev(div, "pointerdown", /*pointerdown_handler*/ ctx[21], false, false, false),
     					listen_dev(div, "dragover", stop_propagation(prevent_default(dragover_handler)), false, true, true),
-    					listen_dev(div, "drop", stop_propagation(prevent_default(/*drop_handler*/ ctx[18])), false, true, true),
-    					listen_dev(div, "paste", /*paste_handler*/ ctx[19], false, false, false),
-    					listen_dev(div, "pointermove", /*pointermove_handler*/ ctx[20], false, false, false),
-    					listen_dev(div, "mouseup", /*mouseup_handler*/ ctx[21], false, false, false)
+    					listen_dev(div, "drop", stop_propagation(prevent_default(/*drop_handler*/ ctx[22])), false, true, true),
+    					listen_dev(div, "paste", /*paste_handler*/ ctx[23], false, false, false),
+    					listen_dev(div, "pointermove", /*pointermove_handler*/ ctx[24], false, false, false),
+    					listen_dev(div, "pointerup", /*pointerup_handler*/ ctx[25], false, false, false)
     				];
 
     				mounted = true;
@@ -5820,6 +5855,7 @@ var app = (function () {
     			if (detaching) detach_dev(main);
     			destroy_component(input);
     			if (if_block) if_block.d();
+    			/*div_binding*/ ctx[18](null);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -5935,7 +5971,7 @@ var app = (function () {
     		event.dataTransfer.dropEffect = "move";
     		$$invalidate(1, coords.x = event.clientX, coords);
     		$$invalidate(1, coords.y = event.clientY, coords);
-    		$$invalidate(2, offset = [coords.x - frameList[frameid].x, coords.y - frameList[frameid].y]);
+    		offset = [coords.x - frameList[frameid].x, coords.y - frameList[frameid].y];
     		return offset; // shouldn't change on drag
     	};
 
@@ -6041,14 +6077,16 @@ var app = (function () {
 
     	let resizable = false;
     	let pannable = false;
+    	let dropzone;
+    	let startingScale = 1;
 
     	const setActive = () => {
-    		$$invalidate(5, resizable = true);
+    		$$invalidate(4, resizable = true);
     	};
 
     	const setInactive = () => {
-    		$$invalidate(5, resizable = false);
-    		$$invalidate(3, currentFrame = null);
+    		$$invalidate(4, resizable = false);
+    		$$invalidate(2, currentFrame = null);
     	};
 
     	const dispatch = createEventDispatcher();
@@ -6072,7 +6110,7 @@ var app = (function () {
     		$$invalidate(0, frameList);
     	}
 
-    	function frame_frameList_binding(value) {
+    	function frame_1_frameList_binding(value) {
     		frameList = value;
     		$$invalidate(0, frameList);
     	}
@@ -6083,8 +6121,8 @@ var app = (function () {
 
     	const message_handler = message => {
     		let currentMessage = message;
-    		$$invalidate(3, currentFrame = currentMessage?.detail?.frame.id);
-    		$$invalidate(4, currentEdge = currentMessage?.detail?.edge);
+    		$$invalidate(2, currentFrame = currentMessage?.detail?.frame.id);
+    		$$invalidate(3, currentEdge = currentMessage?.detail?.edge);
     	};
 
     	const click_handler_1 = (frame, each_value, frame_index) => {
@@ -6092,14 +6130,66 @@ var app = (function () {
     		$$invalidate(0, frameList = reorderLayers(frame.id, frameList));
     	}; // State.append(frameList)
 
+    	function div_binding($$value) {
+    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+    			dropzone = $$value;
+    			$$invalidate(6, dropzone);
+    		});
+    	}
+
+    	const touchstart_handler = event => {
+    		// event.preventDefault()
+    		if (event.target?.id == 'dropzone' && event.targetTouches.length == 1) {
+    			console.log(event);
+    			console.log(frameList[0].x);
+    		}
+
+    		if (event.changedTouches.length > 1) {
+    			try {
+    				let pointer1 = event.targetTouches[0];
+    				let pointer2 = event.targetTouches[1];
+    				let width = Math.abs(pointer1.clientX - pointer2.clientX);
+    				let height = Math.abs(pointer1.clientY - pointer2.clientY);
+    				console.log(width);
+    				console.log(height);
+    				$$invalidate(7, startingScale = width);
+    			} catch(e) {
+    				console.log(e);
+    			}
+    		}
+    	};
+
+    	const touchmove_handler = event => {
+    		// console.log(startingScale, "oh wow")
+    		if (event?.changedTouches?.length == 2) ; // console.log(event)
+    		// frameList = Helpers.touchZoomHandler(frameList, event, startingScale)
+
+    		// console.log(transOptions)
+    		// State.append(frameList)
+    		// console.log(dropzone.style)
+    		// dropzone.style =
+    		// `transform: scale(${transOptions.transfomScale});
+    		// transform-origin: ${transOptions.center[0]}px ${transOptions.center[1]}px;`
+    		if (pannable && event?.changedTouches?.length == 1) {
+    			$$invalidate(0, frameList = frameList.map(frame => {
+    				frame = moveFrame(event, frame, frame.offset);
+    				return frame;
+    			}));
+    		}
+    	};
+
     	const pointerdown_handler = event => {
     		// console.log(event)
     		let target = event.target;
 
     		if (target?.id == 'dropzone') {
     			$$invalidate(0, frameList = clearActiveFrame(frameList));
-    			$$invalidate(6, pannable = true);
-    			$$invalidate(2, offset = [event.clientX - frameList[0]?.x, event.clientY - frameList[0]?.y]);
+    			$$invalidate(5, pannable = true);
+
+    			$$invalidate(0, frameList = frameList.map(frame => {
+    				frame.offset = [event.clientX - frame.x, event.clientY - frame.y];
+    				return frame;
+    			}));
     		} else {
     			setActive(); // console.log(offset)
     		}
@@ -6115,16 +6205,17 @@ var app = (function () {
     			}
     		}
 
-    		if (pannable) {
+    		if (pannable && event?.pointerType === 'mouse') {
     			$$invalidate(0, frameList = frameList.map(frame => {
-    				return moveFrame(event, frame, offset);
-    			})); // return frame
+    				frame = moveFrame(event, frame, frame.offset);
+    				return frame;
+    			}));
     		}
     	};
 
-    	const mouseup_handler = event => {
+    	const pointerup_handler = event => {
     		setInactive();
-    		$$invalidate(6, pannable = false);
+    		$$invalidate(5, pannable = false);
     		append(frameList);
 
     		// console.log('what')
@@ -6155,6 +6246,8 @@ var app = (function () {
     		paste,
     		resizable,
     		pannable,
+    		dropzone,
+    		startingScale,
     		setActive,
     		setInactive,
     		dispatch,
@@ -6167,11 +6260,13 @@ var app = (function () {
     		if ('states' in $$props) states = $$props.states;
     		if ('id' in $$props) id = $$props.id;
     		if ('coords' in $$props) $$invalidate(1, coords = $$props.coords);
-    		if ('offset' in $$props) $$invalidate(2, offset = $$props.offset);
-    		if ('currentFrame' in $$props) $$invalidate(3, currentFrame = $$props.currentFrame);
-    		if ('currentEdge' in $$props) $$invalidate(4, currentEdge = $$props.currentEdge);
-    		if ('resizable' in $$props) $$invalidate(5, resizable = $$props.resizable);
-    		if ('pannable' in $$props) $$invalidate(6, pannable = $$props.pannable);
+    		if ('offset' in $$props) offset = $$props.offset;
+    		if ('currentFrame' in $$props) $$invalidate(2, currentFrame = $$props.currentFrame);
+    		if ('currentEdge' in $$props) $$invalidate(3, currentEdge = $$props.currentEdge);
+    		if ('resizable' in $$props) $$invalidate(4, resizable = $$props.resizable);
+    		if ('pannable' in $$props) $$invalidate(5, pannable = $$props.pannable);
+    		if ('dropzone' in $$props) $$invalidate(6, dropzone = $$props.dropzone);
+    		if ('startingScale' in $$props) $$invalidate(7, startingScale = $$props.startingScale);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -6181,26 +6276,30 @@ var app = (function () {
     	return [
     		frameList,
     		coords,
-    		offset,
     		currentFrame,
     		currentEdge,
     		resizable,
     		pannable,
+    		dropzone,
+    		startingScale,
     		drop,
     		paste,
     		setActive,
     		setInactive,
     		keydown_handler,
     		input_frameList_binding,
-    		frame_frameList_binding,
+    		frame_1_frameList_binding,
     		click_handler,
     		message_handler,
     		click_handler_1,
+    		div_binding,
+    		touchstart_handler,
+    		touchmove_handler,
     		pointerdown_handler,
     		drop_handler,
     		paste_handler,
     		pointermove_handler,
-    		mouseup_handler
+    		pointerup_handler
     	];
     }
 
