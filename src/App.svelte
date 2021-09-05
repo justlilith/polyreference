@@ -38,7 +38,7 @@
 		})
 	}
 	State.append(frameList)
-
+	
 	State.StateStore.subscribe((currentState)=> {
 		if (currentState) {
 			frameList = currentState.framesSnapshot
@@ -149,8 +149,10 @@
 	}
 	
 	let resizable: boolean = false;
-
+	
 	let pannable: boolean = false;
+	let dropzone
+	let startingScale: number = 1
 	
 	const setActive = () => {
 		resizable = true;
@@ -183,16 +185,62 @@ on:keydown="{(event) => {
 
 <div
 id="dropzone"
+bind:this={dropzone}
+on:touchstart="{(event) => {
+	// event.preventDefault()
+	if (event.target?.id=='dropzone' && event.targetTouches.length == 1) {
+		console.log(event)
+		console.log(frameList[0].x)
+		
+	}
+	if (event.changedTouches.length > 1) {
+		try {
+			let pointer1 = event.targetTouches[0]
+			let pointer2 = event.targetTouches[1]
+			
+			let width = Math.abs(pointer1.clientX - pointer2.clientX)
+			let height = Math.abs(pointer1.clientY - pointer2.clientY)
+			console.log(width)
+			console.log(height)
+			startingScale = (width)
+		} catch (e) {
+			console.log(e)
+		}
+	}
+}}"
+on:touchmove="{(event) => {
+	// console.log(startingScale, "oh wow")
+	
+	if (event?.changedTouches?.length == 2) {
+		// console.log(event)
+		// frameList = Helpers.touchZoomHandler(frameList, event, startingScale)
+		// console.log(transOptions)
+		// State.append(frameList)
+		// console.log(dropzone.style)
+		// dropzone.style =
+		// `transform: scale(${transOptions.transfomScale});
+		// transform-origin: ${transOptions.center[0]}px ${transOptions.center[1]}px;`
+	}
+	if (pannable && event?.changedTouches?.length == 1) {
+		frameList = frameList.map(frame => {
+			frame = Helpers.moveFrame(event, frame, frame.offset)
+			return frame
+		})
+	}
+}}"
 on:pointerdown="{event => {
 	// console.log(event)
 	let target = event.target
 	if (target?.id=='dropzone') {
 		frameList = Helpers.clearActiveFrame(frameList)
 		pannable = true
-		offset = [
-			  event.clientX - frameList[0]?.x
-			, event.clientY - frameList[0]?.y
-		]
+		frameList = frameList.map(frame => {
+			frame.offset = [
+			event.clientX - frame.x
+			, event.clientY - frame.y
+			]
+			return frame
+		})
 		// console.log(offset)
 	} else {
 		setActive()
@@ -207,17 +255,17 @@ on:paste="{(event) => paste(event)}"
 on:pointermove="{(event) => {
 	if (resizable == true) {
 		if (frameList[currentFrame]) {
-				frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
+			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
 		}
 	}
-	if (pannable) {
+	if (pannable && event?.pointerType === 'mouse') {
 		frameList = frameList.map(frame => {
-			return Helpers.moveFrame(event, frame, offset)
-			// return frame
+			frame = Helpers.moveFrame(event, frame, frame.offset)
+			return frame
 		})
 	}
 }}"
-on:mouseup="{event => {
+on:pointerup="{event => {
 	setInactive()
 	pannable = false
 	State.append(frameList)
@@ -272,6 +320,7 @@ on:message={(message) => {
 		height: 100%;
 		position: absolute;
 		background-color: hsl(200, 10%, 10%);
+		overflow:scroll
 	}
 	
 	h1 {

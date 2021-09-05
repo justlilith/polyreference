@@ -25,7 +25,8 @@ function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
       bottomLeftHandle: { ...defaultHandle, y: 380 },
       top: true,
       active: true,
-      aspect: 0
+      aspect: 0,
+      offset: [0,0]
     };
     
     let newImage = new Image()
@@ -214,23 +215,24 @@ function moveActiveFrame(frameList,direction){
 
 
 function moveFrame (event, frame:FrameT, offset):FrameT {
-  let coords = {x:0, y:0}
-  coords.x = event.movementX;
-  coords.y = event.movementY;
-  switch (event.pointerType) {
-    case 'touch':
-    console.log(origin)
-    frame.x = event.clientX - offset[0]
-    frame.y = event.clientY - offset[1]
-    break
-    default:
-    case 'mouse':
+  if (event?.pointerType === 'mouse') {
+    let coords = {x:0, y:0}
+    coords.x = event.movementX;
+    coords.y = event.movementY;
     frame.x += coords.x
     frame.y += coords.y
-    break
+  } else {
+    // console.log(event)
+    frame.x = event.changedTouches[0].clientX - offset[0]
+    frame.y = event.changedTouches[0].clientY - offset[1]
+		// console.log(event.changedTouches[0].clientX)
+    // console.log(event.targetTouches[0].clientX + offset[0])
+    console.log(offset[0])
+    // console.log(frame.x)
   }
   frame = moveHandles(frame)
   frame.style = calculateStyle(frame)
+  // console.log(frame)
   return frame
 }
 
@@ -273,6 +275,49 @@ function selectAllFrames(frameList:FrameT[]) {
   })
 }
 
+
+// hey this needs to map over the filterlist instead of using css transforms
+
+function touchZoomHandler (frameList:FrameT[], event, startingScale):FrameT[] {
+  event.preventDefault()
+  let transOptions:TransT =
+  { transfomScale: 1.0
+    , center: [200,200]
+  }
+  
+  let pointer1 = event.targetTouches[0]
+  let pointer2 = event.targetTouches[1]
+  
+  let leftOffset = Math.abs(pointer1.clientX + pointer2.clientX)
+  let topOffset = Math.abs(pointer1.clientY + pointer2.clientY)
+  
+  let width = Math.abs(pointer1.clientX - pointer2.clientX)
+  let height = Math.abs(pointer1.clientY - pointer2.clientY)
+  
+  // console.log(width)
+  // let scaleCenter = [width/2, height/2]
+  
+  // let scale = (width * height)
+  
+  transOptions.transfomScale = width / startingScale * 0.1
+  // console.log(transOptions.transfomScale)
+  
+  transOptions.center = [leftOffset/2, topOffset/2]
+  
+  let newFrameList = frameList.forEach(frame => {
+    frame.x = frame.x * transOptions.transfomScale
+    frame.y = frame.y * transOptions.transfomScale
+    frame.width = frame.width * transOptions.transfomScale
+    frame.height *= transOptions.transfomScale
+    frame = moveHandles(frame)
+    frame.style = calculateStyle(frame)
+    return frame
+  })
+  
+  return frameList
+}
+
+
 function trackMouse (event, frameId, frameList, edge):FrameT {
   let frame:FrameT = frameList[frameId]
   
@@ -313,5 +358,6 @@ export {
   , purgeFrames
   , reorderLayers
   , selectAllFrames
+  , touchZoomHandler
   , trackMouse
 }

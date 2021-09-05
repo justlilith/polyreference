@@ -15,6 +15,7 @@ interface FrameT {
   top: boolean
   active: boolean
   aspect: number
+  offset: number[]
 }
 
 interface Handle {
@@ -28,4 +29,9 @@ interface StateT {
   currentTrans:string
   currentState:function
   framesSnapshot: Array<FrameT>
+}
+
+interface TransT {
+  transfomScale: number
+  center: Array<number> //coordinates
 }
