@@ -278,7 +278,7 @@ function selectAllFrames(frameList:FrameT[]) {
 
 // hey this needs to map over the filterlist instead of using css transforms
 
-function touchZoomHandler (frameList:FrameT[], event, startingScale):FrameT[] {
+function touchZoomHandler (frameList:FrameT[], event, startingScale):[FrameT[],number] {
   event.preventDefault()
   let transOptions:TransT =
   { transfomScale: 1.0
@@ -299,22 +299,30 @@ function touchZoomHandler (frameList:FrameT[], event, startingScale):FrameT[] {
   
   // let scale = (width * height)
   
-  transOptions.transfomScale = width / startingScale * 0.1
+  transOptions.transfomScale = width / startingScale
+  transOptions.transfomScale > 1 ? transOptions.transfomScale = 1.05 : transOptions.transfomScale = 0.97 
   // console.log(transOptions.transfomScale)
   
-  transOptions.center = [leftOffset/2, topOffset/2]
+  // transOptions.center = [leftOffset/2, topOffset/2]
   
-  let newFrameList = frameList.forEach(frame => {
-    frame.x = frame.x * transOptions.transfomScale
-    frame.y = frame.y * transOptions.transfomScale
-    frame.width = frame.width * transOptions.transfomScale
-    frame.height *= transOptions.transfomScale
-    frame = moveHandles(frame)
-    frame.style = calculateStyle(frame)
-    return frame
+  let newFrameList = frameList.map(frame => {
+    // frame.x = frame.x * transOptions.transfomScale
+    // frame.y = frame.y * transOptions.transfomScale
+    let newFrame = frame
+    newFrame.width = frame.width * transOptions.transfomScale
+    newFrame.height = frame.height * transOptions.transfomScale
+    newFrame.x = frame.x * transOptions.transfomScale
+    newFrame.y *= transOptions.transfomScale
+    newFrame = moveHandles(frame)
+    newFrame.style = calculateStyle(frame)
+    return newFrame
   })
+
+  // console.log(newFrameList[0])
+
+  startingScale = width
   
-  return frameList
+  return [newFrameList, startingScale]
 }
 
 
