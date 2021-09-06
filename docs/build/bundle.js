@@ -1001,26 +1001,32 @@ var app = (function () {
         };
         let pointer1 = event.targetTouches[0];
         let pointer2 = event.targetTouches[1];
-        let leftOffset = Math.abs(pointer1.clientX + pointer2.clientX);
-        let topOffset = Math.abs(pointer1.clientY + pointer2.clientY);
+        Math.abs(pointer1.clientX + pointer2.clientX);
+        Math.abs(pointer1.clientY + pointer2.clientY);
         let width = Math.abs(pointer1.clientX - pointer2.clientX);
         Math.abs(pointer1.clientY - pointer2.clientY);
         // console.log(width)
         // let scaleCenter = [width/2, height/2]
         // let scale = (width * height)
-        transOptions.transfomScale = width / startingScale * 0.1;
+        transOptions.transfomScale = width / startingScale;
+        transOptions.transfomScale > 1 ? transOptions.transfomScale = 1.05 : transOptions.transfomScale = 0.97;
         // console.log(transOptions.transfomScale)
-        transOptions.center = [leftOffset / 2, topOffset / 2];
-        frameList.forEach(frame => {
-            frame.x = frame.x * transOptions.transfomScale;
-            frame.y = frame.y * transOptions.transfomScale;
-            frame.width = frame.width * transOptions.transfomScale;
-            frame.height *= transOptions.transfomScale;
-            frame = moveHandles(frame);
-            frame.style = calculateStyle(frame);
-            return frame;
+        // transOptions.center = [leftOffset/2, topOffset/2]
+        let newFrameList = frameList.map(frame => {
+            // frame.x = frame.x * transOptions.transfomScale
+            // frame.y = frame.y * transOptions.transfomScale
+            let newFrame = frame;
+            newFrame.width = frame.width * transOptions.transfomScale;
+            newFrame.height = frame.height * transOptions.transfomScale;
+            newFrame.x = frame.x * transOptions.transfomScale;
+            newFrame.y *= transOptions.transfomScale;
+            newFrame = moveHandles(frame);
+            newFrame.style = calculateStyle(frame);
+            return newFrame;
         });
-        return frameList;
+        // console.log(newFrameList[0])
+        startingScale = width;
+        return [newFrameList, startingScale];
     }
     function trackMouse(event, frameId, frameList, edge) {
         let frame = frameList[frameId];
@@ -5436,7 +5442,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (266:0) {#if frameList.length > 0}
+    // (270:0) {#if frameList.length > 0}
     function create_if_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -5525,14 +5531,14 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(266:0) {#if frameList.length > 0}",
+    		source: "(270:0) {#if frameList.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (271:0) {:else}
+    // (275:0) {:else}
     function create_else_block(ctx) {
     	let div;
     	let frame_1;
@@ -5573,7 +5579,7 @@ var app = (function () {
     			div = element("div");
     			create_component(frame_1.$$.fragment);
     			t = space();
-    			add_location(div, file, 271, 0, 9414);
+    			add_location(div, file, 275, 0, 9463);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -5621,14 +5627,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(271:0) {:else}",
+    		source: "(275:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (268:0) {#if frame == null}
+    // (272:0) {#if frame == null}
     function create_if_block_1(ctx) {
     	let t_value = (/*frameList*/ ctx[0] = purgeFrames(/*frameList*/ ctx[0])) + "";
     	let t;
@@ -5654,14 +5660,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(268:0) {#if frame == null}",
+    		source: "(272:0) {#if frame == null}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (267:0) {#each frameList as frame}
+    // (271:0) {#each frameList as frame}
     function create_each_block(ctx) {
     	let current_block_type_index;
     	let if_block;
@@ -5734,7 +5740,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(267:0) {#each frameList as frame}",
+    		source: "(271:0) {#each frameList as frame}",
     		ctx
     	});
 
@@ -5773,9 +5779,9 @@ var app = (function () {
     			div = element("div");
     			if (if_block) if_block.c();
     			attr_dev(div, "id", "dropzone");
-    			attr_dev(div, "class", "svelte-6hj41f");
+    			attr_dev(div, "class", "svelte-l1nbwt");
     			add_location(div, file, 174, 0, 6849);
-    			attr_dev(main, "class", "svelte-6hj41f");
+    			attr_dev(main, "class", "svelte-l1nbwt");
     			add_location(main, file, 167, 0, 6799);
     		},
     		l: function claim(nodes) {
@@ -6138,20 +6144,15 @@ var app = (function () {
     	}
 
     	const touchstart_handler = event => {
-    		// event.preventDefault()
-    		if (event.target?.id == 'dropzone' && event.targetTouches.length == 1) {
-    			console.log(event);
-    			console.log(frameList[0].x);
-    		}
+    		event.preventDefault();
 
-    		if (event.changedTouches.length > 1) {
+    		if (event.targetTouches.length > 1) {
     			try {
     				let pointer1 = event.targetTouches[0];
     				let pointer2 = event.targetTouches[1];
     				let width = Math.abs(pointer1.clientX - pointer2.clientX);
     				let height = Math.abs(pointer1.clientY - pointer2.clientY);
     				console.log(width);
-    				console.log(height);
     				$$invalidate(7, startingScale = width);
     			} catch(e) {
     				console.log(e);
@@ -6161,11 +6162,14 @@ var app = (function () {
 
     	const touchmove_handler = event => {
     		// console.log(startingScale, "oh wow")
-    		if (event?.changedTouches?.length == 2) ; // console.log(event)
-    		// frameList = Helpers.touchZoomHandler(frameList, event, startingScale)
+    		event.preventDefault();
 
-    		// console.log(transOptions)
+    		if (event.targetTouches.length == 2) {
+    			// console.log(event);
+    			$$invalidate(0, [frameList, startingScale] = touchZoomHandler(frameList, event, startingScale), frameList, $$invalidate(7, startingScale));
+    		} // console.log(transOptions)
     		// State.append(frameList)
+
     		// console.log(dropzone.style)
     		// dropzone.style =
     		// `transform: scale(${transOptions.transfomScale});
@@ -6184,7 +6188,18 @@ var app = (function () {
 
     		if (target?.id == 'dropzone') {
     			$$invalidate(0, frameList = clearActiveFrame(frameList));
-    			$$invalidate(5, pannable = true);
+
+    			if (event.pointerType == 'touch') {
+    				if (event.isPrimary) {
+    					$$invalidate(5, pannable = true);
+    				} else {
+    					$$invalidate(5, pannable = false);
+    				}
+    			}
+
+    			if (event.pointerType == 'mouse') {
+    				$$invalidate(5, pannable = true);
+    			}
 
     			$$invalidate(0, frameList = frameList.map(frame => {
     				frame.offset = [event.clientX - frame.x, event.clientY - frame.y];

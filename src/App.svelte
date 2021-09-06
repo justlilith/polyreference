@@ -187,13 +187,8 @@ on:keydown="{(event) => {
 id="dropzone"
 bind:this={dropzone}
 on:touchstart="{(event) => {
-	// event.preventDefault()
-	if (event.target?.id=='dropzone' && event.targetTouches.length == 1) {
-		console.log(event)
-		console.log(frameList[0].x)
-		
-	}
-	if (event.changedTouches.length > 1) {
+	event.preventDefault()
+	if (event.targetTouches.length > 1) {
 		try {
 			let pointer1 = event.targetTouches[0]
 			let pointer2 = event.targetTouches[1]
@@ -201,8 +196,7 @@ on:touchstart="{(event) => {
 			let width = Math.abs(pointer1.clientX - pointer2.clientX)
 			let height = Math.abs(pointer1.clientY - pointer2.clientY)
 			console.log(width)
-			console.log(height)
-			startingScale = (width)
+			startingScale = width
 		} catch (e) {
 			console.log(e)
 		}
@@ -210,10 +204,11 @@ on:touchstart="{(event) => {
 }}"
 on:touchmove="{(event) => {
 	// console.log(startingScale, "oh wow")
-	
-	if (event?.changedTouches?.length == 2) {
-		// console.log(event)
-		// frameList = Helpers.touchZoomHandler(frameList, event, startingScale)
+	event.preventDefault()
+
+	if (event.targetTouches.length == 2) {
+		// console.log(event);
+		[frameList, startingScale] = Helpers.touchZoomHandler(frameList, event, startingScale);
 		// console.log(transOptions)
 		// State.append(frameList)
 		// console.log(dropzone.style)
@@ -233,7 +228,16 @@ on:pointerdown="{event => {
 	let target = event.target
 	if (target?.id=='dropzone') {
 		frameList = Helpers.clearActiveFrame(frameList)
-		pannable = true
+		if (event.pointerType == 'touch') { 
+			if (event.isPrimary) {
+			pannable = true
+		} else {
+			pannable = false
+			}
+		}
+		if (event.pointerType == 'mouse') {
+			pannable = true
+		}
 		frameList = frameList.map(frame => {
 			frame.offset = [
 			event.clientX - frame.x
@@ -320,7 +324,7 @@ on:message={(message) => {
 		height: 100%;
 		position: absolute;
 		background-color: hsl(200, 10%, 10%);
-		overflow:scroll
+		/* overflow:scroll */
 	}
 	
 	h1 {
