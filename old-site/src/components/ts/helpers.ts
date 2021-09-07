@@ -1,7 +1,7 @@
 import { autosave } from "./autosave";
 import * as State from "./state";
 
-const defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
+let defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
 
 function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
@@ -9,7 +9,7 @@ function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
     if (!data) {
       reject()
     }
-    const id = frameList.length;
+    let id = frameList.length;
     
     let frame:FrameT = {
       url: data,
@@ -29,7 +29,7 @@ function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
       offset: [0,0]
     };
     
-    const newImage = new Image()
+    let newImage = new Image()
     newImage.src = frame.url
     newImage.onload = () => {
       console.log(newImage.naturalHeight, newImage.naturalWidth)
@@ -48,7 +48,7 @@ function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
 
 
 function calculateStyle (frame:FrameT, corner?:string):string {
-  let style = ""
+  let style:string = ""
   let addedStyle:string
   
   let width = frame.width
@@ -106,7 +106,7 @@ function deepCopy (array:Array<any>):Array<any> {
 
 
 function fitToScreen(frame){
-  const aspect = frame.width / frame.height // 20/10 == 2:1 == 2
+  let aspect = frame.width / frame.height // 20/10 == 2:1 == 2
   let newWidth = window.visualViewport.width / 2 //e.g. 450
   let newHeight = window.visualViewport.width / 2 //e.g 225
   frame.width > frame.height //wideboi
@@ -194,8 +194,8 @@ function handleKeypress(event, frameList:FrameT[]){
 }
 
 function moveActiveFrame(frameList,direction){
-  const CONSTANT = 40
-  const active = getActiveFrame(frameList)
+  let CONSTANT = 40
+  let active = getActiveFrame(frameList)
   switch (direction) {
     case 'left':
     frameList[active.id].x = (frameList[active.id].x - CONSTANT) - (frameList[active.id].x % CONSTANT)
@@ -223,7 +223,7 @@ function moveActiveFrame(frameList,direction){
 
 function moveFrame (event, frame:FrameT, offset):FrameT {
   if (event?.pointerType === 'mouse') {
-    const coords = {x:0, y:0}
+    let coords = {x:0, y:0}
     coords.x = event.movementX;
     coords.y = event.movementY;
     frame.x += coords.x
@@ -264,7 +264,7 @@ function purgeFrames (frameList:FrameT[]) {
 }
 
 function reorderLayers (frameid,frameList:FrameT[]):Array<FrameT> {
-  const newList = frameList.map(frame => {
+  let newList = frameList.map(frame => {
     if (frame.id == frameid) {
       frame = {...frame, top: true, active: true}
     } else {
@@ -287,30 +287,30 @@ function selectAllFrames(frameList:FrameT[]) {
 
 function touchZoomHandler (frameList:FrameT[], event, startingScale):FrameT[] {
   event.preventDefault()
-  const transOptions:TransT =
+  let transOptions:TransT =
   { transfomScale: 1.0
     , center: [200,200]
   }
   
-  const pointer1 = event.targetTouches[0]
-  const pointer2 = event.targetTouches[1]
+  let pointer1 = event.targetTouches[0]
+  let pointer2 = event.targetTouches[1]
   
-  const leftOffset = Math.abs(pointer1.clientX + pointer2.clientX)
-  const topOffset = Math.abs(pointer1.clientY + pointer2.clientY)
+  let leftOffset = Math.abs(pointer1.clientX + pointer2.clientX)
+  let topOffset = Math.abs(pointer1.clientY + pointer2.clientY)
   
-  const width = Math.abs(pointer1.clientX - pointer2.clientX)
-  const height = Math.abs(pointer1.clientY - pointer2.clientY)
+  let width = Math.abs(pointer1.clientX - pointer2.clientX)
+  let height = Math.abs(pointer1.clientY - pointer2.clientY)
   
   // let scaleCenter = [width/2, height/2]
   
   // let scale = (width * height)
   
   transOptions.transfomScale = Math.sqrt(width ** 2 + height ** 2)
-  const ratio = transOptions.transfomScale / startingScale
+  let ratio = transOptions.transfomScale / startingScale
   
   // transOptions.center = [leftOffset/2, topOffset/2]
   
-  const newFrameList = [...frameList].map(frame => {
+  let newFrameList = [...frameList].map(frame => {
     // frame.x = frame.x * transOptions.transfomScale
     // frame.y = frame.y * transOptions.transfomScale
     frame.width *= ratio
@@ -331,17 +331,17 @@ function touchZoomHandler (frameList:FrameT[], event, startingScale):FrameT[] {
 
 function trackMouse (event, frameId, frameList, edge):FrameT {
   let frame:FrameT = frameList[frameId]
-  const origin = {x: frame.x, y: frame.y}
-  const coords = {x:0, y:0}
   
   switch (event.pointerType) {
     case 'touch':
     console.log(event)
+    const origin = {x: frame.x, y: frame.y}
     frame.width = event.clientX - origin.x
     frame.height = frame.width / frame.aspect
     break
     default:
     case 'mouse':
+    let coords = {x:0, y:0}
     coords.x = event.movementX;
     coords.y = event.movementY;
     frame.width += coords.x

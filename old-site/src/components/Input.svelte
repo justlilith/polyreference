@@ -1,4 +1,6 @@
 <script lang='ts'>
+	import Button, { Label } from '@smui/button'
+	import { Icon } from '@smui/common'
   import { buildFrame, reorderLayers } from './ts/helpers'
   
   export let frameList:FrameT[]
@@ -24,15 +26,15 @@
 	bind:value={inputContent}
 	on:keypress='{keypressCheck.bind(inputContent)}'>
 	<div id='submit'>
-		<button
+		<Button variant='outlined'
 		on:mousedown={(event)=> {
 			event.preventDefault()
 			keypressCheck({key: 'enter'})
 			}}
-		>
-			<span class="material-icons">add</span>
-			<span class="button-text">Add Image</span>
-		</button>
+		b>
+			<Icon class="material-icons">add</Icon>
+			<Label>Add Image</Label>
+		</Button>
 	</div>
 </section>
 
@@ -67,13 +69,6 @@
 		border:none;
 		text-decoration: none;
 		width:100%;
-	}
-	button {
-		vertical-align: middle;
-		text-transform: uppercase;
-	}
-	.button-text {
-		vertical-align: middle;
 	}
 
 	:global(.mdc-button--outlined:not(:disabled)) {

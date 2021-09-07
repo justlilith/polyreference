@@ -1,16 +1,10 @@
-import { browser } from '$app/env'
+let appStorage = window.localStorage
 
-let appStorage
-
-if (browser) {
-	appStorage = window.localStorage;
-}
-
-function saveToLocal (appStorage:Storage, prop:string, value):void {
+function saveToLocal (prop:string, value):void {
   appStorage.setItem(prop,JSON.stringify(value))
 }
 
-function loadFromLocal (appStorage:Storage, prop:string, value) {
+function loadFromLocal (prop:string, value) {
   let fetched = null
   try {
     fetched = JSON.parse(appStorage.getItem(prop))
@@ -26,7 +20,7 @@ function loadFromLocal (appStorage:Storage, prop:string, value) {
 }
 
 function autosave (frameList:Array<FrameT>):void {
-  saveToLocal(appStorage, 'frameList', frameList)
+  saveToLocal('frameList', frameList)
   console.log('saved uwu ✨')
 }
 
