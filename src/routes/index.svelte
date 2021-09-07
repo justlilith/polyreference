@@ -26,7 +26,7 @@
 
 	frameList = loadFromLocal(appStorage, 'frameList', frameList)
 	console.log(frameList)
-	oldFrameList = Helpers.deepCopy(frameList)
+	frameList ? oldFrameList = Helpers.deepCopy(frameList) : oldFrameList = []
 
 	
 	if (frameList === null || frameList === undefined || frameList?.length == 0){
