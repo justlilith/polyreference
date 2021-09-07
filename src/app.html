@@ -7,27 +7,7 @@
 
 	<title>Polyref</title>
 
-	
-
-		
-
-		<link rel="modulepreload" href="/internal/start-66bbc787.js">
-		<link rel="modulepreload" href="/internal/chunks/vendor-f97e69e6.js">
-		<link rel="stylesheet" href="/internal/assets/start-61d1577b.css">
-
-		<script type="module">
-			import { start } from "/internal/start-66bbc787.js";
-			start({
-				target: document.querySelector("#svelte"),
-				paths: {"base":"","assets":""},
-				session: {},
-				host: location.host,
-				route: true,
-				spa: true,
-				trailing_slash: "never",
-				hydrate: null
-			});
-		</script>
+	%svelte.head%
 
 	<link rel="alternate" type="application/json+oembed"
 	href="http://polyref.cc/oembed.json"
@@ -50,9 +30,6 @@
 	/>
 </head>
 <body>
-	<div id="svelte">
-
-			
-		</div>
+	<div id="svelte">%svelte.body%</div>
 </body>
 </html>

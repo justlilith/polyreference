@@ -1,37 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="utf-8" />
-	<link rel="icon" href="/favicon.png" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width,initial-scale=1'>
 
 	<title>Polyref</title>
-
-	
-
-		
-
-		<link rel="modulepreload" href="/internal/start-66bbc787.js">
-		<link rel="modulepreload" href="/internal/chunks/vendor-f97e69e6.js">
-		<link rel="stylesheet" href="/internal/assets/start-61d1577b.css">
-
-		<script type="module">
-			import { start } from "/internal/start-66bbc787.js";
-			start({
-				target: document.querySelector("#svelte"),
-				paths: {"base":"","assets":""},
-				session: {},
-				host: location.host,
-				route: true,
-				spa: true,
-				trailing_slash: "never",
-				hydrate: null
-			});
-		</script>
-
-	<link rel="alternate" type="application/json+oembed"
-	href="http://polyref.cc/oembed.json"
-	title="Polyref's oEmbed Profile" />
 
 	<meta name="twitter:card" content="summary_large_image"></meta>
 	<meta name="twitter:site" content="@imjustlilith"></meta>
@@ -48,11 +21,13 @@
 	<link rel='stylesheet' href='./global.css'>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"
 	/>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/svelte-material-ui@4.0.0/bare.min.css"
+	/>
+	<link rel='stylesheet' href='./build/bundle.css'>
+	
+	<script defer src='./build/bundle.js'></script>
 </head>
-<body>
-	<div id="svelte">
 
-			
-		</div>
+<body>
 </body>
 </html>
