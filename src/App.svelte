@@ -167,6 +167,10 @@
 	const forward = (message) => {
 		dispatch(message);
 	};
+	
+	
+	
+	let	oldFrameList = Helpers.deepCopy(frameList)
 </script>
 
 
@@ -186,6 +190,13 @@ on:keydown="{(event) => {
 <div
 id="dropzone"
 bind:this={dropzone}
+on:dragover|stopPropagation|preventDefault={(event) => {
+	// console.log('dragon')
+	return false;
+}}
+on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
+on:paste="{(event) => paste(event)}"
+
 on:touchstart="{(event) => {
 	event.preventDefault()
 	if (event.targetTouches.length > 1) {
@@ -195,8 +206,8 @@ on:touchstart="{(event) => {
 			
 			let width = Math.abs(pointer1.clientX - pointer2.clientX)
 			let height = Math.abs(pointer1.clientY - pointer2.clientY)
-			console.log(width)
-			startingScale = width
+			startingScale = Math.sqrt(width ** 2 + height ** 2)
+			oldFrameList = Helpers.deepCopy(frameList)
 		} catch (e) {
 			console.log(e)
 		}
@@ -204,12 +215,12 @@ on:touchstart="{(event) => {
 }}"
 on:touchmove="{(event) => {
 	// console.log(startingScale, "oh wow")
-	event.preventDefault()
-
+	// event.preventDefault()
+	
 	if (event.targetTouches.length == 2) {
 		// console.log(event);
-		[frameList, startingScale] = Helpers.touchZoomHandler(frameList, event, startingScale);
-		// console.log(transOptions)
+		frameList = Helpers.touchZoomHandler(Helpers.deepCopy(oldFrameList), event, startingScale);
+		// console.log(startingScale, "okay")
 		// State.append(frameList)
 		// console.log(dropzone.style)
 		// dropzone.style =
@@ -227,12 +238,14 @@ on:pointerdown="{event => {
 	// console.log(event)
 	let target = event.target
 	if (target?.id=='dropzone') {
-		frameList = Helpers.clearActiveFrame(frameList)
+		if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
+			frameList = Helpers.clearActiveFrame(frameList)
+		}
 		if (event.pointerType == 'touch') { 
 			if (event.isPrimary) {
-			pannable = true
-		} else {
-			pannable = false
+				pannable = true
+			} else {
+				pannable = false
 			}
 		}
 		if (event.pointerType == 'mouse') {
@@ -250,12 +263,6 @@ on:pointerdown="{event => {
 		setActive()
 	}
 }}"
-on:dragover|stopPropagation|preventDefault={(event) => {
-	// console.log('dragon')
-	return false;
-}}
-on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
-on:paste="{(event) => paste(event)}"
 on:pointermove="{(event) => {
 	if (resizable == true) {
 		if (frameList[currentFrame]) {
@@ -272,6 +279,7 @@ on:pointermove="{(event) => {
 on:pointerup="{event => {
 	setInactive()
 	pannable = false
+	// frameList = newFrameList
 	State.append(frameList)
 	// console.log('what')
 	autosave(frameList)
@@ -285,16 +293,17 @@ on:pointerup="{event => {
 {frameList = Helpers.purgeFrames(frameList)}
 {:else}
 <div
-on:click="{() => {
-	frame = Helpers.moveHandles(frame)
-	frameList = Helpers.reorderLayers(frame.id, frameList)
+on:pointerdown="{(event) => {
+	if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
+		frame = Helpers.moveHandles(frame)
+		frameList = Helpers.reorderLayers(frame.id, frameList)
+	}
 	// State.append(frameList)
 }}"
 >
 <Frame
 bind:frameList
 addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
-on:click="{() => {frameList = Helpers.reorderLayers(frame.id, frameList)}}"
 on:message={(message) => {
 	let currentMessage = message;
 	currentFrame = currentMessage?.detail?.frame.id;

@@ -92,11 +92,18 @@ function calculateStyle (frame:FrameT, corner?:string):string {
   return style
 }
 
+
 function clearActiveFrame (frameList):FrameT[] {
   return frameList.map(frame => {
     return {...frame, active : false}
   })
 }
+
+
+function deepCopy (array:Array<any>):Array<any> {
+  return JSON.parse(JSON.stringify(array))
+}
+
 
 function fitToScreen(frame){
   let aspect = frame.width / frame.height // 20/10 == 2:1 == 2
@@ -115,7 +122,7 @@ function getActiveFrame (frameList:FrameT[]):FrameT {
 
 
 function handleKeypress(event, frameList:FrameT[]){
-  console.log(event)
+  // console.log(event)
   switch (event.key) {
     case 'a':
     if (event.ctrlKey){
@@ -278,7 +285,7 @@ function selectAllFrames(frameList:FrameT[]) {
 
 // hey this needs to map over the filterlist instead of using css transforms
 
-function touchZoomHandler (frameList:FrameT[], event, startingScale):[FrameT[],number] {
+function touchZoomHandler (frameList:FrameT[], event, startingScale):FrameT[] {
   event.preventDefault()
   let transOptions:TransT =
   { transfomScale: 1.0
@@ -294,35 +301,31 @@ function touchZoomHandler (frameList:FrameT[], event, startingScale):[FrameT[],n
   let width = Math.abs(pointer1.clientX - pointer2.clientX)
   let height = Math.abs(pointer1.clientY - pointer2.clientY)
   
-  // console.log(width)
   // let scaleCenter = [width/2, height/2]
   
   // let scale = (width * height)
   
-  transOptions.transfomScale = width / startingScale
-  transOptions.transfomScale > 1 ? transOptions.transfomScale = 1.05 : transOptions.transfomScale = 0.97 
-  // console.log(transOptions.transfomScale)
+  transOptions.transfomScale = Math.sqrt(width ** 2 + height ** 2)
+  let ratio = transOptions.transfomScale / startingScale
   
   // transOptions.center = [leftOffset/2, topOffset/2]
   
-  let newFrameList = frameList.map(frame => {
+  let newFrameList = [...frameList].map(frame => {
     // frame.x = frame.x * transOptions.transfomScale
     // frame.y = frame.y * transOptions.transfomScale
-    let newFrame = frame
-    newFrame.width = frame.width * transOptions.transfomScale
-    newFrame.height = frame.height * transOptions.transfomScale
-    newFrame.x = frame.x * transOptions.transfomScale
-    newFrame.y *= transOptions.transfomScale
-    newFrame = moveHandles(frame)
-    newFrame.style = calculateStyle(frame)
-    return newFrame
+    frame.width *= ratio
+    frame.height *= ratio
+    frame.x *= ratio
+    frame.y *= ratio
+    frame = moveHandles(frame)
+    frame.style = calculateStyle(frame)
+    return frame
   })
 
-  // console.log(newFrameList[0])
 
-  startingScale = width
+  // startingScale = width
   
-  return [newFrameList, startingScale]
+  return newFrameList
 }
 
 
@@ -357,6 +360,7 @@ export {
   buildFrame
   , calculateStyle
   , clearActiveFrame
+  , deepCopy
   , fitToScreen
   , getActiveFrame
   , handleKeypress
