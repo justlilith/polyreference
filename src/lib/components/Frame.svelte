@@ -1,8 +1,8 @@
 <script lang='ts'>
   import { createEventDispatcher } from 'svelte'
-	import { autosave, loadFromLocal } from './ts/autosave'
 
-  import * as Helpers from './ts/helpers'
+	import { autosave, loadFromLocal } from '$lib/ts/autosave'
+  import * as Helpers from '$lib/ts/helpers'
   
   export let frame:FrameT
   export let frameList:FrameT[]
@@ -251,9 +251,9 @@ Resize
     border:none;
   }
 
-  a {
-		color:red;
-		text-decoration: none;
-	}
+  // a {
+	// 	color:red;
+	// 	text-decoration: none;
+	// }
 
 </style>
