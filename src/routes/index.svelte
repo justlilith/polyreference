@@ -1,14 +1,17 @@
-<script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { autosave, loadFromLocal } from '../components/ts/autosave'
-	import { get } from 'svelte/store'
-	import * as Helpers from '../components/ts/helpers'
-	import * as State from '../components/ts/state'
-	import Frame from "../components/Frame.svelte"
-	import Input from '../components/Input.svelte'
-	import { loop_guard } from "svelte/internal";
+<script lang='ts'>
+	import { createEventDispatcher } from 'svelte';
 	import { onMount } from 'svelte'
-
+	import { loop_guard } from 'svelte/internal';
+	import { get } from 'svelte/store'
+	
+	import Frame from '$lib/components/Frame.svelte'
+	import Input from '$lib/components/Input.svelte'
+	import LoginMenu from '$lib/components/LoginMenu.svelte'
+	
+	import { autosave, loadFromLocal } from '$lib/ts/autosave'
+	import * as Helpers from '$lib/ts/helpers'
+	import * as State from '$lib/ts/state'
+	
 	
 	let frameList:FrameT[]
 	let oldFrameList:FrameT[]
@@ -18,56 +21,56 @@
 	let coords = { x: 0, y: 0 };
 	let offset = [];
 	let currentFrame;
-	let currentEdge;
+	let currentEdge:string;
 	let appStorage:Storage
 	
-  onMount( async () => {
+	onMount( async () => {
 		appStorage = window.localStorage
-
-	frameList = loadFromLocal(appStorage, 'frameList', frameList)
-	console.log(frameList)
-	frameList ? oldFrameList = Helpers.deepCopy(frameList) : oldFrameList = []
-
-	
-	if (frameList === null || frameList === undefined || frameList?.length == 0){
-		frameList = new Array()
 		
-		let init = Helpers.buildFrame(
-		"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
-		, frameList)
-		.then(newFrame => {
+		frameList = loadFromLocal(appStorage, 'frameList', frameList)
+		console.log(frameList)
+		frameList ? oldFrameList = Helpers.deepCopy(frameList) : oldFrameList = []
+		
+		
+		if (frameList === null || frameList === undefined || frameList?.length == 0){
+			frameList = new Array()
 			
-			newFrame.x = 50
-			newFrame.y = 100
-			newFrame.style = Helpers.calculateStyle(newFrame)
-			newFrame = Helpers.moveHandles(newFrame)
-			frameList.push(newFrame)
-			frameList = Helpers.reorderLayers(newFrame.id, frameList)
-			// console.log(frameList.filter(frame => frame.id == frame.id))
-		})
-	}
-	State.append(frameList)
-	
-	State.StateStore.subscribe((currentState)=> {
-		if (currentState) {
-			frameList = currentState.framesSnapshot
-			frameList = frameList.map(frame => {
-				frame = Helpers.moveHandles(frame)
-				return {...frame, style: Helpers.calculateStyle(frame)}
+			let init = Helpers.buildFrame(
+			"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
+			, frameList)
+			.then(newFrame => {
+				
+				newFrame.x = 50
+				newFrame.y = 100
+				newFrame.style = Helpers.calculateStyle(newFrame)
+				newFrame = Helpers.moveHandles(newFrame)
+				frameList.push(newFrame)
+				frameList = Helpers.reorderLayers(newFrame.id, frameList)
+				// console.log(frameList.filter(frame => frame.id == frame.id))
 			})
-		} else {
-			frameList = []
 		}
+		State.append(frameList)
+		
+		State.StateStore.subscribe((currentState)=> {
+			if (currentState) {
+				frameList = currentState.framesSnapshot
+				frameList = frameList.map(frame => {
+					frame = Helpers.moveHandles(frame)
+					return {...frame, style: Helpers.calculateStyle(frame)}
+				})
+			} else {
+				frameList = []
+			}
+		})
+		
+		states = //init
+		[
+		{ currentTrans: ''
+		, currentState:	State.calculate(states, 0, frameList)
+		, framesSnapshot: frameList }
+		]
 	})
 	
-	states = //init
-	[
-	{ currentTrans: ""
-	, currentState:	State.calculate(states, 0, frameList)
-	, framesSnapshot: frameList }
-	]
-	})
-
 	
 	const handleDragStart = (event, frameid) => {
 		event.dataTransfer.setData("frame id", frameid);
@@ -244,7 +247,7 @@ on:touchmove="{(event) => {
 		})
 	}
 }}"
-on:pointerdown="{event => {
+on:pointerdown="{(event) => {
 	// console.log(event)
 	let target = event.target
 	if (target?.id == 'dropzone') {
@@ -276,7 +279,7 @@ on:pointerdown="{event => {
 on:pointermove="{(event) => {
 	if (resizable == true) {
 		if (frameList[currentFrame]) {
-			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList, currentEdge)
+			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList)
 		}
 	}
 	if (pannable && event?.pointerType === 'mouse') {

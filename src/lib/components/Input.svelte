@@ -1,5 +1,5 @@
 <script lang='ts'>
-  import { buildFrame, reorderLayers } from './ts/helpers'
+  import { buildFrame, reorderLayers } from '$lib/ts/helpers'
   
   export let frameList:FrameT[]
 

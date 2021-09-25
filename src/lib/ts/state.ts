@@ -1,14 +1,14 @@
 import { writable, get } from 'svelte/store'
 import { autosave, saveToLocal } from './autosave'
 
-let statePointer:number = 0
-let stateList:StateT[] = [{
+let statePointer = 0
+const stateList:StateT[] = [{
   currentTrans: ''
   , currentState: ''
   , framesSnapshot: []
 }]
 
-let initState:StateT = {
+const initState:StateT = {
   currentTrans: ''
   , currentState: ''
   , framesSnapshot: []
@@ -16,7 +16,7 @@ let initState:StateT = {
 
 const StateStore = writable(initState)
 
-function advance () {
+function advance ():void {
   StateStore.update(() => {
     statePointer += 1
     // let stateList = get(StateStore)
@@ -25,11 +25,9 @@ function advance () {
     }
     return stateList[statePointer]
   })
-  // statePointer = stateList.length - 1
-  // return stateList[stateList.length - 1]
 }
 
-function append (frameList:FrameT[]) {
+function append (frameList:FrameT[]):void {
   statePointer += 1
   const currentState:StateT[] = stateList
   const newState = {
@@ -46,11 +44,15 @@ function append (frameList:FrameT[]) {
   })
 }
 
-function calculate (states, index, framesSnapshot:FrameT[]) {
-  
+function calculate (states:StateT[], index:number, framesSnapshot:FrameT[]):StateT {
+  return {
+    currentTrans:'',
+    currentState:states[index],
+    framesSnapshot:framesSnapshot
+  }
 }
 
-function reverse () {
+function reverse ():void {
   console.log('reversing history uwu ✨')
   StateStore.update(() => {
     
