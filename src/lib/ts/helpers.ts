@@ -1,5 +1,6 @@
-import { autosave } from "./autosave";
-import * as State from "./state";
+import { autosave, saveToLocal } from "./autosave";
+import * as State from "$lib/ts/state";
+import * as Save from "$lib/ts/autosave";
 
 const defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
@@ -30,6 +31,7 @@ function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
     };
     
     const newImage = new Image()
+    
     newImage.src = frame.url
     newImage.onload = () => {
       console.log(newImage.naturalHeight, newImage.naturalWidth)
@@ -194,6 +196,18 @@ function handleKeypress(event:KeyboardEvent, frameList:FrameT[]):FrameT[]{
   }
 }
 
+
+function loadImage (args:LoadImageArgs):ImageRecordT {
+  let localImageList:Array<ImageRecordT> = []
+  localImageList = Save.loadFromLocal(args.appStorage,'localImages', []) as Array<ImageRecordT>
+  localImageList != null ? null : localImageList = []
+  return localImageList.filter(image => {
+    return image.id == args.frameList.length
+  })[0]
+  // return localImageList[0].imageFile
+}
+
+
 function moveActiveFrame(frameList:FrameT[],direction:string):FrameT[]{
   const CONSTANT = 40
   const active = getActiveFrame(frameList)
@@ -233,7 +247,7 @@ function moveFrame (event:PointerEvent | TouchEvent, frame:FrameT, offset:number
     // console.log(event)
     frame.x = (event as TouchEvent).changedTouches[0].clientX - offset[0]
     frame.y = (event as TouchEvent).changedTouches[0].clientY - offset[1]
-		// console.log(event.changedTouches[0].clientX)
+    // console.log(event.changedTouches[0].clientX)
     // console.log(event.targetTouches[0].clientX + offset[0])
     console.log(offset[0])
     // console.log(frame.x)
@@ -258,11 +272,44 @@ function moveHandles(frame: FrameT): FrameT {
   return frame;
 }
 
+
+async function paste (frameList:FrameT[], event:ClipboardEvent, appStorage:Storage):Promise<void> {
+  const imageFile = event?.clipboardData?.items[0].getAsFile();
+  let data = event?.clipboardData?.getData("text");
+  if (imageFile) {
+    await saveImage({imageFile, frameList, appStorage})
+    const imageData = loadImage({appStorage, frameList})
+    data = imageData.text
+  }
+  let newFrame = await buildFrame(data, frameList);
+  newFrame.x = 50;
+  newFrame.y = 100;
+  newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
+  
+  const newImage = new Image()
+  newImage.src = data
+  newImage.onload = () => {
+    console.log(newImage.naturalHeight, newImage.naturalWidth)
+    newFrame.height = newImage.naturalHeight
+    newFrame.width = newImage.naturalWidth
+    newFrame = fitToScreen(newFrame)
+    newFrame.style = calculateStyle(newFrame)
+    moveHandles(newFrame)
+    
+    data ? (frameList = [...frameList, newFrame]) : null;
+    frameList = reorderLayers(newFrame.id, frameList)
+    console.log(frameList.filter(frame => frame.id == newFrame.id))
+    State.append(frameList)
+  }
+}
+
+
 function purgeFrames (frameList:FrameT[]):FrameT[] {
   return frameList.filter(frame => {
     return frame !== null || frame !== undefined
   })
 }
+
 
 function reorderLayers (frameid:number,frameList:FrameT[]):Array<FrameT> {
   const newList = frameList.map(frame => {
@@ -274,6 +321,43 @@ function reorderLayers (frameid:number,frameList:FrameT[]):Array<FrameT> {
     return frame
   })
   return newList
+}
+
+
+async function saveImage (args:SaveImageArgs) {
+  const reader = new FileReader()
+  let base64
+  reader.addEventListener('loadend', event => {
+    base64 = reader.result
+
+    let localImageList = Save.loadFromLocal(args.appStorage,'localImages', []) as Array<ImageRecordT>
+    localImageList != null ? localImageList : localImageList = []
+    if (localImageList.length != 0 || localImageList != null) {
+      const temp = localImageList.filter(imageRecord => {
+        return imageRecord.id == args.frameList.length
+      })
+      if (temp.length < 1 || temp == null) {
+        localImageList.push({
+          imageFile: args.imageFile,
+          id: args.frameList.length,
+          type: args.imageFile.type,
+          text: base64
+        })
+        Save.saveToLocal(args.appStorage,'localImages',localImageList)
+      }
+    }
+    if (localImageList.length == 0) {
+      localImageList.push({
+        imageFile: args.imageFile,
+        id: args.frameList.length,
+        type: args.imageFile.type,
+        text: base64
+      })
+      Save.saveToLocal(args.appStorage,'localImages',localImageList)
+    }
+  })
+
+  reader.readAsDataURL(args.imageFile)
 }
 
 
@@ -322,8 +406,8 @@ function touchZoomHandler (frameList:FrameT[], event:TouchEvent, startingScale:n
     frame.style = calculateStyle(frame)
     return frame
   })
-
-
+  
+  
   // startingScale = width
   
   return newFrameList
@@ -368,6 +452,7 @@ export {
   , moveActiveFrame
   , moveFrame
   , moveHandles
+  , paste
   , purgeFrames
   , reorderLayers
   , selectAllFrames

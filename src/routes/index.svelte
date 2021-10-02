@@ -6,7 +6,7 @@
 	
 	import Frame from '$lib/components/Frame.svelte'
 	import Input from '$lib/components/Input.svelte'
-	import LoginMenu from '$lib/components/LoginMenu.svelte'
+	import AuthMenu from '$lib/components/AuthMenu.svelte'
 	
 	import { autosave, loadFromLocal } from '$lib/ts/autosave'
 	import * as Helpers from '$lib/ts/helpers'
@@ -134,34 +134,6 @@
 		// if (event.dataTransfer.
 	}
 	
-	const paste = async (event) => {
-		let image = event?.clipboardData?.items[0].getAsFile();
-		let data = event?.clipboardData?.getData("text");
-		if (image) {
-			data = URL.createObjectURL(image);
-		}
-		let newFrame = await Helpers.buildFrame(data, frameList);
-		newFrame.x = 50;
-		newFrame.y = 100;
-		newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
-		
-		let newImage = new Image()
-		newImage.src = data
-		newImage.onload = () => {
-			console.log(newImage.naturalHeight, newImage.naturalWidth)
-			newFrame.height = newImage.naturalHeight
-			newFrame.width = newImage.naturalWidth
-			newFrame = Helpers.fitToScreen(newFrame)
-			newFrame.style = Helpers.calculateStyle(newFrame)
-			Helpers.moveHandles(newFrame)
-			
-			data ? (frameList = [...frameList, newFrame]) : null;
-			frameList = Helpers.reorderLayers(newFrame.id, frameList)
-			console.log(frameList.filter(frame => frame.id == newFrame.id))
-			State.append(frameList)
-		}
-	}
-	
 	let resizable: boolean = false;
 	
 	let pannable: boolean = false;
@@ -200,6 +172,8 @@ on:keydown="{(event) => {
 
 <Input bind:frameList></Input>
 
+<AuthMenu></AuthMenu>
+
 <div
 id="dropzone"
 bind:this={dropzone}
@@ -208,7 +182,7 @@ on:dragover|stopPropagation|preventDefault={(event) => {
 	return false;
 }}
 on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
-on:paste="{(event) => paste(event)}"
+on:paste="{(event) => Helpers.paste(frameList, event, appStorage)}"
 
 on:touchstart="{(event) => {
 	event.preventDefault()

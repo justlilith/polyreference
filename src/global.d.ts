@@ -18,13 +18,6 @@ interface FrameT {
   offset: number[]
 }
 
-interface Handle {
-  width: number
-  height: number
-  x: number
-  y: number
-}
-
 interface StateT {
   currentTrans:string
   currentState:function
@@ -34,4 +27,32 @@ interface StateT {
 interface TransT {
   transfomScale: number
   center: Array<number> //coordinates
+}
+
+
+interface ImageRecordT {
+  id: number
+  imageFile: File
+  type: string
+  text: string
+}
+
+interface Handle {
+  width: number
+  height: number
+  x: number
+  y: number
+}
+
+
+
+type LoadImageArgs = {
+  frameList: FrameT[]
+  appStorage: Storage
+}
+
+type SaveImageArgs = {
+  imageFile: File
+  frameList: FrameT[]
+  appStorage: Storage
 }

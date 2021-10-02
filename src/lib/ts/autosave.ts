@@ -1,4 +1,5 @@
 import { browser } from '$app/env'
+// import * as Helpers from '$lib/ts/helpers'
 
 let appStorage
 
@@ -6,22 +7,21 @@ if (browser) {
 	appStorage = window.localStorage;
 }
 
-function saveToLocal (appStorage:Storage, prop:string, value):void {
+function saveToLocal (appStorage:Storage, prop:string, value:unknown):void {
   appStorage.setItem(prop,JSON.stringify(value))
 }
 
-function loadFromLocal (appStorage:Storage, prop:string, value) {
+function loadFromLocal (appStorage:Storage, prop:string, value:unknown):unknown {
   let fetched = null
   try {
     fetched = JSON.parse(appStorage.getItem(prop))
     if (fetched == "") {
       throw new Error("Smile empty soul")
     }
+    return fetched
   } catch (e) {
     console.warn(e)
-    fetched = value
-  } finally {
-    return fetched
+    return value
   }
 }
 
