@@ -1,52 +1,78 @@
 <script lang='ts'>
   import { fade } from 'svelte/transition'
+  import * as Auth from '$lib/ts/auth'
   
-  let loginDropdown:boolean
-  let signupDropdown:boolean
+  let phone:string
+  let name:string
+  let password:string
+  let email:string
+  
+  let authDropdown:boolean
+  let chooseAuth:boolean
+  let loginMenu:boolean
+  let signupMenu:boolean
 </script>
 
 <div id='auth-menu'>
-  <button on:click='{()=> {loginDropdown = true; signupDropdown = false}}'>
+  <button on:click='{()=> {authDropdown = true; chooseAuth = true; loginMenu = false; signupMenu = false}}'>
+    Menu
+  </button>
+</div>
+
+{#if authDropdown}
+<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {authDropdown = false}}'>
+</div>
+<div transition:fade|local='{{duration:100}}' class='auth-dropdown'>
+  {#if chooseAuth}
+  <button on:click='{()=> {loginMenu = true; signupMenu = false; chooseAuth = false}}'>
     Log In
   </button>
-  <button on:click='{()=> {signupDropdown = true; loginDropdown = false}}'>
+  <button on:click='{()=> {signupMenu = true; loginMenu = false; chooseAuth = false}}'>
     Sign Up
   </button>
-</div>
-
-{#if loginDropdown}
-<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {loginDropdown = false}}'>
-</div>
-<div transition:fade|local='{{duration:100}}' class='menu-dropdown'>
-  <div>
-    <span>
-      Phone
-    </span>
-    <input/>
-  </div>
-  <div>
-    <span>
-      Password
-    </span>
-    <input/>
-  </div>
-  <button>Submit</button>
+  {/if}
+  {#if loginMenu}
+  <form class='span-both form' on:submit="{async (e)=>{
+    e.preventDefault();
+    // console.log(Auth.signUpWithPhone(phone))
+    console.log(await Auth.LogInWithEmail({name:name, email: email, password:password}))
+  }}">
+  <span class='left' >Email</span>
+  <input class='right' bind:value="{email}"/>
+  <span class='left'>Password</span>
+  <input class='right' type='password' bind:value="{password}"/>
+  <!-- <button>Submit</button> -->
+  <button class='span-both' value="submit">Submit</button>
+</form>
+<p class='span-both'>
+  <span>Don't have an account?</span> <a href='#/' on:click="{()=> {loginMenu = false; signupMenu = true}}">Sign up here.</a>
+</p>
+<button class='back-button span-both' on:click="{() =>{loginMenu = false; chooseAuth = true}}">Back</button>
+{/if}
+{#if signupMenu}
+<form class='span-both form' on:submit="{async (e)=>{
+  e.preventDefault();
+  // console.log(await Auth.signUpWithPhone({phone: phone, password: password, email: email}))
+  console.log(await Auth.signUpWithEmail({password: password, email: email}))
+}}">
+<!-- <span class='left'>Phone</span>
+<input class='right' bind:value="{phone}"/> -->
+<span class='left'>Name</span>
+<input class='right' bind:value="{name}"/>
+<span class='left'>Email</span>
+<input class='right' bind:value="{email}"/>
+<span class='left'>Password</span>
+<input class='right' bind:value="{password}" type="password"/>
+<button class='span-both'>Submit</button>
+</form>
+<p class='span-both'>
+  <span>Already have an account?</span> <a href='#/' on:click="{()=> {loginMenu = true; signupMenu = false}}">Log in here.</a>
+</p>
+<button class='back-button span-both' on:click="{() =>{signupMenu = false; chooseAuth = true}}">Back</button>
+{/if}
 </div>
 {/if}
 
-{#if signupDropdown}
-<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {signupDropdown = false}}'>
-</div>
-<div transition:fade|local='{{duration:100}}' class='menu-dropdown'>
-  <div>
-    <span>Phone</span>
-    <input/>
-  </div>
-  <div>
-    <button>Submit</button>
-  </div>
-</div>
-{/if}
 
 <style lang='scss'>
   #auth-menu {
@@ -64,12 +90,12 @@
     height:3em;
   }
   
-  .menu-dropdown {
+  .auth-dropdown {
     background: #000;
-    display:flex;
-    flex-flow: column nowrap;
-    height: 300px;
-    margin:1em;
+    display:grid;
+    // grid-template-areas: 'left right';
+    grid-column: repeat(1fr, 3);
+    // height: 300px;
     margin-top:75px;
     padding:1em;
     position:absolute;
@@ -77,6 +103,33 @@
     top:0px;
     width: 300px;
     z-index: 145;
+    color: white;
+    gap: 1em;
+  }
+  
+  .left {
+    // grid-area: left;
+    grid-column: 1 / span 1;
+    margin: auto 0;
+    text-align: left;
+  }
+  .right {
+    // grid-area: right;
+    grid-column: 2 / span 2;
+    margin: auto 0;
+  }
+  .span-both {
+    grid-column: 1 / span 3;
+    margin: auto o;
+  }
+  .form {
+    display:grid;
+    gap: 1em;
+    grid-column: repeat(1fr, 3);
+  }
+  .back-button {
+    border: thin solid red;
+    color:  red;
   }
   
   .menu-dropdown button {

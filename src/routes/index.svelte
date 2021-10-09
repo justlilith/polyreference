@@ -7,10 +7,12 @@
 	import Frame from '$lib/components/Frame.svelte'
 	import Input from '$lib/components/Input.svelte'
 	import AuthMenu from '$lib/components/AuthMenu.svelte'
+	import Statusbar from '$lib/components/Statusbar.svelte'
 	
 	import { autosave, loadFromLocal } from '$lib/ts/autosave'
 	import * as Helpers from '$lib/ts/helpers'
 	import * as State from '$lib/ts/state'
+	import * as Auth from '$lib/ts/auth'
 	
 	
 	let frameList:FrameT[]
@@ -165,10 +167,10 @@ on:keydown="{(event) => {
 	Helpers.handleKeypress(event, frameList)
 }}"
 />
-<main
->
 
 
+
+<main>
 
 <Input bind:frameList></Input>
 
@@ -304,6 +306,9 @@ on:message={(message) => {
 {/if}
 
 </div>
+
+<Statusbar></Statusbar>
+
 </main>
 
 
@@ -312,7 +317,7 @@ on:message={(message) => {
 	main {
 		text-align: center;
 		max-width: 240px;
-		margin: 0 auto;
+		margin: 0;
 	}
 	
 	#dropzone {
