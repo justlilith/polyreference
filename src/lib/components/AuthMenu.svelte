@@ -11,6 +11,12 @@
   let chooseAuth:boolean
   let loginMenu:boolean
   let signupMenu:boolean
+
+  let loggedIn:boolean
+
+  Auth.authStore.subscribe((update)=> {
+    loggedIn = update.loggedIn
+  })
 </script>
 
 <div id='auth-menu'>
@@ -23,6 +29,14 @@
 <div transition:fade|local='{{duration:100}}' class=  'modal' on:click='{()=> {authDropdown = false}}'>
 </div>
 <div transition:fade|local='{{duration:100}}' class='auth-dropdown'>
+
+  {#if loggedIn}
+  <button class='back-button' on:click='{()=> {authDropdown = false; loginMenu = false; signupMenu = false; chooseAuth = false; Auth.logOut()}}'>
+    Log Out
+  </button>
+
+  {:else}
+
   {#if chooseAuth}
   <button on:click='{()=> {loginMenu = true; signupMenu = false; chooseAuth = false}}'>
     Log In
@@ -35,7 +49,7 @@
   <form class='span-both form' on:submit="{async (e)=>{
     e.preventDefault();
     // console.log(Auth.signUpWithPhone(phone))
-    console.log(await Auth.LogInWithEmail({name:name, email: email, password:password}))
+    console.log(await Auth.logInWithEmail({name:name, email: email, password:password}))
   }}">
   <span class='left' >Email</span>
   <input class='right' bind:value="{email}"/>
@@ -70,6 +84,9 @@
 </p>
 <button class='back-button span-both' on:click="{() =>{signupMenu = false; chooseAuth = true}}">Back</button>
 {/if}
+
+{/if}
+
 </div>
 {/if}
 

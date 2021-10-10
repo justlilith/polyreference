@@ -1,6 +1,5 @@
 function saveToCookies (name:string, value:unknown):void{
   document.cookie = `${name}=${JSON.stringify(value)}`
-  console.log(document.cookie)
 }
 
 

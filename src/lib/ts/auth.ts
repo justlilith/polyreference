@@ -9,13 +9,33 @@ let loggedIn:boolean
 let userData:User
 let sessionData:Session
 
-const loginStore = writable({
+const authStore = writable({
   loggedIn: loggedIn
   , userData: userData
   , sessionData: sessionData
 })
 
-const LogInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
+
+const authCheck = async ():Promise<boolean> => {
+  const token = Storage.fetchFromCookies('refreshToken')
+  const {user, session, error} = await supabase.auth.signIn({refreshToken:token})
+  if (!error) {
+    Storage.saveToCookies('refreshToken',session.refresh_token)
+    authStore.update(()=> {
+      return {
+        userData: user
+        , sessionData: session
+        , loggedIn: true
+      }
+    })
+    return true
+  } else {
+    return false
+  }
+}
+
+
+const logInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
   const { user, session, error} = await supabase.auth.signIn({
     password: args.password
     , email: args.email
@@ -24,9 +44,10 @@ const LogInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
     loggedIn = true
     userData = user
     sessionData = session
-    Storage.saveToCookies('userData',userData)
-    Storage.saveToCookies('loggedIn',true)
-    loginStore.update(() => {
+    // Storage.saveToCookies('userData',userData)
+    // Storage.saveToCookies('loggedIn',true)
+    Storage.saveToCookies('refreshToken',session.refresh_token)
+    authStore.update(() => {
       return {
         loggedIn: true
         , userData: userData
@@ -34,10 +55,22 @@ const LogInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
       }
     })
   }
-  
-  
   return [user, session, error]
 }
+
+
+const logOut = async () => {
+  await supabase.auth.signOut()
+  authStore.update(()=> {
+    return {
+      loggedIn: false
+      , userData: null
+      , sessionData: null
+    }
+  })
+  Storage.saveToCookies('refreshToken', null)
+}
+
 
 const signUpWithEmail = async (args):Promise<Array<User|Session|Error>> => {
   const { user, session, error} = await supabase.auth.signUp({
@@ -65,9 +98,11 @@ const signUpWithEmail = async (args):Promise<Array<User|Session|Error>> => {
 // }
 
 export {
-  loggedIn
-  , loginStore
-  , LogInWithEmail
+  authCheck
+  , loggedIn
+  , logOut
+  , authStore
+  , logInWithEmail
   , sessionData
   , signUpWithEmail
   // , signUpWithPhone

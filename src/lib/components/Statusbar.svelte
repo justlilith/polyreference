@@ -5,18 +5,16 @@
   import { space } from 'svelte/internal';
   
   let user:string = ""
-  let loggedIn = ""
+  let loggedIn:boolean = false
   
-  if (browser) {
-    user = Storage.fetchFromCookies('userData')?.email
-    loggedIn = Storage.fetchFromCookies('loggedIn')
-    console.log(loggedIn)
-    console.log(user)
+  Auth.authStore.subscribe((update)=>{
+    user = update.userData?.email
+    loggedIn = update.loggedIn
+  })
+
+  if (browser) {  
+      Auth.authCheck().then(res => loggedIn = res)
   }
-  // Auth.loginStore.subscribe(change =>{
-  //   user = change?.userData?.email ?? ""
-  //   loggedIn = change.loggedIn
-  // })
 </script>
 
 <section id='statusbar'>
