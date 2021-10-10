@@ -20,7 +20,7 @@
 </div>
 
 {#if authDropdown}
-<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {authDropdown = false}}'>
+<div transition:fade|local='{{duration:100}}' class=  'modal' on:click='{()=> {authDropdown = false}}'>
 </div>
 <div transition:fade|local='{{duration:100}}' class='auth-dropdown'>
   {#if chooseAuth}
