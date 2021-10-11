@@ -10,36 +10,77 @@
 	import Statusbar from '$lib/components/Statusbar.svelte'
 	
 	import { autosave, loadFromLocal } from '$lib/ts/autosave'
+	import * as Storage from '$lib/ts/storage'
 	import * as Helpers from '$lib/ts/helpers'
 	import * as State from '$lib/ts/state'
 	import * as Auth from '$lib/ts/auth'
+import type { Session, User } from '@supabase/gotrue-js';
 	
 	
 	let frameList:FrameT[]
 	let oldFrameList:FrameT[]
-	let states:StateT[]
+	let states:StateT[] = []
 	
-	let id = 0;
-	let coords = { x: 0, y: 0 };
-	let offset = [];
-	let currentFrame;
-	let currentEdge:string;
+	let id = 0
+	let coords = { x: 0, y: 0 }
+	let offset = []
+	let currentFrame = null
+	let currentEdge:string = ""
 	let appStorage:Storage
 	
+	let loggedIn: boolean = false
+	let userData: User
+	let sessionData: Session
+	
 	onMount( async () => {
+		Auth.authStore.subscribe(async (update) => {
+			loggedIn = update.loggedIn
+			userData = update.userData
+			sessionData = update.sessionData
+			if (loggedIn) {
+				console.log('did fetch')
+				const { fetchedFrameList, error } = await Storage.fetchFrames(update.userData)
+				if (!error) {
+					if (fetchedFrameList.length != 0) {
+						State.append(fetchedFrameList)
+					}
+				} else {
+					console.log(error)
+				}
+			}
+		})
+		
+		State.StateStore.subscribe(async (currentState)=> {
+			if (currentState) {
+				frameList = currentState.framesSnapshot
+				frameList = frameList.map(frame => {
+					frame = Helpers.moveHandles(frame)
+					return {...frame, style: Helpers.calculateStyle(frame)}
+				})
+				console.log(frameList)
+				if (loggedIn) {
+					await Storage.uploadFrames(Auth.userData, frameList)
+				}
+			} else {
+				frameList = []
+			}
+		})
+		
 		appStorage = window.localStorage
 		
-		frameList = loadFromLocal(appStorage, 'frameList', frameList)
-		console.log(frameList)
-		frameList ? oldFrameList = Helpers.deepCopy(frameList) : oldFrameList = []
-		
+		if (loggedIn == false) {
+			frameList = loadFromLocal(appStorage, 'frameList', frameList) as FrameT[]
+			console.log(frameList)
+			frameList ? oldFrameList = Helpers.deepCopy(frameList) : oldFrameList = []
+		}
 		
 		if (frameList === null || frameList === undefined || frameList?.length == 0){
 			frameList = new Array()
 			
-			let init = Helpers.buildFrame(
-			"https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
-			, frameList)
+			Helpers.buildFrame({
+				userData
+			, url: "https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
+			, frameList})
 			.then(newFrame => {
 				
 				newFrame.x = 50
@@ -48,22 +89,15 @@
 				newFrame = Helpers.moveHandles(newFrame)
 				frameList.push(newFrame)
 				frameList = Helpers.reorderLayers(newFrame.id, frameList)
+				State.append(frameList)
+				// Storage.uploadFrames(Auth.userData, frameList)
 				// console.log(frameList.filter(frame => frame.id == frame.id))
 			})
 		}
+		
 		State.append(frameList)
 		
-		State.StateStore.subscribe((currentState)=> {
-			if (currentState) {
-				frameList = currentState.framesSnapshot
-				frameList = frameList.map(frame => {
-					frame = Helpers.moveHandles(frame)
-					return {...frame, style: Helpers.calculateStyle(frame)}
-				})
-			} else {
-				frameList = []
-			}
-		})
+		
 		
 		states = //init
 		[
@@ -164,142 +198,155 @@
 
 <svelte:window
 on:keydown="{(event) => {
-	Helpers.handleKeypress(event, frameList)
+	if (loggedIn == false){
+		userData = null
+	}
+	Helpers.handleKeypress({userData, event, frameList})
 }}"
 />
 
 
 
 <main>
-
-<Input bind:frameList></Input>
-
-<AuthMenu></AuthMenu>
-
-<div
-id="dropzone"
-bind:this={dropzone}
-on:dragover|stopPropagation|preventDefault={(event) => {
-	// console.log('dragon')
-	return false;
-}}
-on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
-on:paste="{(event) => Helpers.paste(frameList, event, appStorage)}"
-
-on:touchstart="{(event) => {
-	event.preventDefault()
-	if (event.targetTouches.length > 1) {
+	
+	<Input bind:frameList bind:userData></Input>
+	
+	<AuthMenu></AuthMenu>
+	
+	<div
+	id="dropzone"
+	bind:this={dropzone}
+	on:dragover|stopPropagation|preventDefault={(event) => {
+		// console.log('dragon')
+		return false;
+	}}
+	on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
+	on:paste="{async (event) => {
 		try {
-			let pointer1 = event.targetTouches[0]
-			let pointer2 = event.targetTouches[1]
-			
-			let width = Math.abs(pointer1.clientX - pointer2.clientX)
-			let height = Math.abs(pointer1.clientY - pointer2.clientY)
-			startingScale = Math.sqrt(width ** 2 + height ** 2)
-			oldFrameList = Helpers.deepCopy(frameList)
+			Helpers.paste({userData, frameList, event, appStorage, loggedIn})
 		} catch (e) {
 			console.log(e)
 		}
-	}
+		// console.log({userData, frameList, event, appStorage, loggedIn})
+		// console.log(event.clipboardData.items[0].getAsFile())
+		// console.log(event.clipboardData.getData("text"))
+		// console.log()
 }}"
-on:touchmove="{(event) => {
-	// console.log(startingScale, "oh wow")
-	// event.preventDefault()
 	
-	if (event.targetTouches.length == 2) {
-		// console.log(event);
-		frameList = Helpers.touchZoomHandler(Helpers.deepCopy(oldFrameList), event, startingScale);
-		// console.log(startingScale, "okay")
-		// State.append(frameList)
-		// console.log(dropzone.style)
-		// dropzone.style =
-		// `transform: scale(${transOptions.transfomScale});
-		// transform-origin: ${transOptions.center[0]}px ${transOptions.center[1]}px;`
-	}
-	if (pannable && event?.changedTouches?.length == 1) {
-		frameList = frameList.map(frame => {
-			frame = Helpers.moveFrame(event, frame, frame.offset)
-			return frame
-		})
-	}
-}}"
-on:pointerdown="{(event) => {
-	// console.log(event)
-	let target = event.target
-	if (target?.id == 'dropzone') {
-		if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
-			frameList = Helpers.clearActiveFrame(frameList)
-		}
-		if (event.pointerType == 'touch') { 
-			if (event.isPrimary) {
-				pannable = true
-			} else {
-				pannable = false
+	on:touchstart="{(event) => {
+		event.preventDefault()
+		if (event.targetTouches.length > 1) {
+			try {
+				let pointer1 = event.targetTouches[0]
+				let pointer2 = event.targetTouches[1]
+				
+				let width = Math.abs(pointer1.clientX - pointer2.clientX)
+				let height = Math.abs(pointer1.clientY - pointer2.clientY)
+				startingScale = Math.sqrt(width ** 2 + height ** 2)
+				oldFrameList = Helpers.deepCopy(frameList)
+			} catch (e) {
+				console.log(e)
 			}
 		}
-		if (event.pointerType == 'mouse') {
-			pannable = true
+	}}"
+	on:touchmove="{(event) => {
+		// console.log(startingScale, "oh wow")
+		// event.preventDefault()
+		
+		if (event.targetTouches.length == 2) {
+			// console.log(event);
+			frameList = Helpers.touchZoomHandler(Helpers.deepCopy(oldFrameList), event, startingScale);
+			// console.log(startingScale, "okay")
+			// State.append(frameList)
+			// console.log(dropzone.style)
+			// dropzone.style =
+			// `transform: scale(${transOptions.transfomScale});
+			// transform-origin: ${transOptions.center[0]}px ${transOptions.center[1]}px;`
 		}
-		frameList = frameList.map(frame => {
-			frame.offset = [
-			event.clientX - frame.x
-			, event.clientY - frame.y
-			]
-			return frame
-		})
-		// console.log(offset)
-	} else {
-		setActive()
-	}
-}}"
-on:pointermove="{(event) => {
-	if (resizable == true) {
-		if (frameList[currentFrame]) {
-			frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList)
+		if (pannable && event?.changedTouches?.length == 1) {
+			frameList = frameList.map(frame => {
+				frame = Helpers.moveFrame(event, frame, frame.offset)
+				return frame
+			})
 		}
-	}
-	if (pannable && event?.pointerType === 'mouse') {
-		frameList = frameList.map(frame => {
-			frame = Helpers.moveFrame(event, frame, frame.offset)
-			return frame
-		})
-	}
-}}"
-on:pointerup="{event => {
-	setInactive()
-	pannable = false
-	// frameList = newFrameList
-	State.append(frameList)
-	// console.log('what')
-	autosave(frameList)
-}}"
->
-
-{#if frameList?.length > 0}
-{#each frameList as frame}
-{#if frame == null}
-<!--  -->
-{frameList = Helpers.purgeFrames(frameList)}
-{:else}
-<div
-on:pointerdown="{(event) => {
-	if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
-		frame = Helpers.moveHandles(frame)
-		frameList = Helpers.reorderLayers(frame.id, frameList)
-	}
-	// State.append(frameList)
-}}"
->
-<Frame
-bind:frameList
-addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
-on:message={(message) => {
-	let currentMessage = message;
-	currentFrame = currentMessage?.detail?.frame.id;
-	currentEdge = currentMessage?.detail?.edge;
-}}
-{frame}
-/>
+	}}"
+	on:pointerdown="{(event) => {
+		// console.log(event)
+		let target = event.target
+		if (target?.id == 'dropzone') {
+			if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
+				frameList = Helpers.clearActiveFrame(frameList)
+			}
+			if (event.pointerType == 'touch') { 
+				if (event.isPrimary) {
+					pannable = true
+				} else {
+					pannable = false
+				}
+			}
+			if (event.pointerType == 'mouse') {
+				pannable = true
+			}
+			frameList = frameList.map(frame => {
+				frame.offset = [
+				event.clientX - frame.x
+				, event.clientY - frame.y
+				]
+				return frame
+			})
+			// console.log(offset)
+		} else {
+			setActive()
+		}
+	}}"
+	on:pointermove="{(event) => {
+		if (resizable == true) {
+			if (frameList[currentFrame]) {
+				frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList)
+			}
+		}
+		if (pannable && event?.pointerType === 'mouse') {
+			frameList = frameList.map(frame => {
+				frame = Helpers.moveFrame(event, frame, frame.offset)
+				return frame
+			})
+		}
+	}}"
+	on:pointerup="{event => {
+		setInactive()
+		pannable = false
+		// frameList = newFrameList
+		State.append(frameList)
+		// console.log('what')
+		autosave(frameList)
+	}}"
+	>
+	
+	{#if frameList?.length > 0}
+	{#each frameList as frame}
+	{#if frame == null}
+	<!--  -->
+	{frameList = Helpers.purgeFrames(frameList)}
+	{:else}
+	<div
+	on:pointerdown="{(event) => {
+		if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
+			frame = Helpers.moveHandles(frame)
+			frameList = Helpers.reorderLayers(frame.id, frameList)
+		}
+		// State.append(frameList)
+	}}"
+	>
+	<Frame
+	bind:frameList
+	addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
+	on:message={(message) => {
+		let currentMessage = message;
+		currentFrame = currentMessage?.detail?.frame.id;
+		currentEdge = currentMessage?.detail?.edge;
+	}}
+	{frame}
+	/>
 </div>
 {/if}
 {/each}

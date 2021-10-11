@@ -1,20 +1,24 @@
 <script lang='ts'>
-  import { buildFrame, reorderLayers } from '$lib/ts/helpers'
-  
-  export let frameList:FrameT[]
-
-  let inputContent:string = ''
-  
-  const keypressCheck = async (event) => {
-    // console.log(event)
-    if (event.key.toLowerCase() == 'enter') {
-      let newFrame = await buildFrame(inputContent, frameList)
-      frameList = [...frameList, newFrame]
+	import { buildFrame, reorderLayers } from '$lib/ts/helpers'
+	import * as State from '$lib/ts/state'
+	import type { User } from '@supabase/gotrue-js';
+	
+	export let frameList:FrameT[]
+	export let userData:User
+	
+	let inputContent:string = ''
+	
+	const keypressCheck = async (event) => {
+		// console.log(event)
+		if (event.key.toLowerCase() == 'enter') {
+			let newFrame = await buildFrame({userData, url: inputContent, frameList})
+			frameList = [...frameList, newFrame]
 			frameList = reorderLayers(newFrame.id, frameList)
-      inputContent = ''
-    }
-    
-  }
+			State.append(frameList)
+			inputContent = ''
+		}
+		
+	}
 </script>
 
 <section id='inputArea' on:click|preventDefault>
@@ -28,16 +32,16 @@
 		on:mousedown={(event)=> {
 			event.preventDefault()
 			keypressCheck({key: 'enter'})
-			}}
+		}}
 		>
-			<span class="material-icons">add</span>
-			<span class="button-text">Add Image</span>
-		</button>
-	</div>
+		<span class="material-icons">add</span>
+		<span class="button-text">Add Image</span>
+	</button>
+</div>
 </section>
 
 <style lang='scss'>
-  #inputArea {
+	#inputArea {
 		background-color: black;
 		padding:1em;
 		// width: 100%;
@@ -75,7 +79,7 @@
 	.button-text {
 		vertical-align: middle;
 	}
-
+	
 	:global(.mdc-button--outlined:not(:disabled)) {
 		color:cyan;
 	}

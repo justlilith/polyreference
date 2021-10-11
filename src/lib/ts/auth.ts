@@ -21,6 +21,7 @@ const authCheck = async ():Promise<boolean> => {
   const {user, session, error} = await supabase.auth.signIn({refreshToken:token})
   if (!error) {
     Storage.saveToCookies('refreshToken',session.refresh_token)
+    await Storage.upsertFolder(user)
     authStore.update(()=> {
       return {
         userData: user
@@ -28,6 +29,9 @@ const authCheck = async ():Promise<boolean> => {
         , loggedIn: true
       }
     })
+    userData = user
+    loggedIn = true
+    sessionData = session
     return true
   } else {
     return false
@@ -47,6 +51,7 @@ const logInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
     // Storage.saveToCookies('userData',userData)
     // Storage.saveToCookies('loggedIn',true)
     Storage.saveToCookies('refreshToken',session.refresh_token)
+    await Storage.upsertFolder(user)
     authStore.update(() => {
       return {
         loggedIn: true

@@ -1,5 +1,8 @@
 import { browser } from '$app/env'
+import type { User } from '@supabase/gotrue-js';
 // import * as Helpers from '$lib/ts/helpers'
+import * as Storage from '$lib/ts/storage'
+import { userData } from './auth';
 
 let appStorage
 
@@ -25,8 +28,17 @@ function loadFromLocal (appStorage:Storage, prop:string, value:unknown):unknown 
   }
 }
 
-function autosave (frameList:Array<FrameT>):void {
-  saveToLocal(appStorage, 'frameList', frameList)
+
+type AutosaveArgsT = {
+  userData: User
+  frameList: Array<FrameT>
+}
+function autosave (args:AutosaveArgsT):void {
+  if (args.userData == null){
+  saveToLocal(appStorage, 'frameList', args.frameList)
+  } else {
+    Storage.uploadFrames(args.userData,args.frameList)
+  }
   console.log('saved uwu ✨')
 }
 

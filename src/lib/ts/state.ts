@@ -31,7 +31,6 @@ function append (frameList:FrameT[]):void {
   statePointer += 1
   const currentState:StateT[] = stateList
   const newState = {
-    // ...currentState[currentState.length -1]
     ...currentState[statePointer -1]
     , framesSnapshot: frameList
   }

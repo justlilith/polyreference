@@ -1,19 +1,27 @@
 import { autosave, saveToLocal } from "./autosave";
-import * as State from "$lib/ts/state";
+import * as Storage from "$lib/ts/storage";
 import * as Save from "$lib/ts/autosave";
+import * as State from "$lib/ts/state";
+import * as Auth from "$lib/ts/auth";
+import type { User } from "@supabase/gotrue-js";
 
 const defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
 
-
-function buildFrame(data:string, frameList:Array<FrameT>):Promise<FrameT> {
+type BuildFrameArgsT = {
+  url: string
+  frameList: FrameT[]
+  userData: User
+}
+function buildFrame(args:BuildFrameArgsT):Promise<FrameT> {
+  console.log(args)
   return new Promise((resolve, reject) => {
-    if (!data) {
+    if (!args.url) {
       reject()
     }
-    const id = frameList.length;
+    const id = args.frameList.length;
     
     let frame:FrameT = {
-      url: data,
+      url: args.url,
       width: 400,
       height: 400,
       x: 100,
@@ -124,75 +132,81 @@ function getActiveFrame (frameList:FrameT[]):FrameT {
 }
 
 
-function handleKeypress(event:KeyboardEvent, frameList:FrameT[]):FrameT[]{
+type KeypressArgsT = {
+  userData:User
+  event:KeyboardEvent
+  frameList:FrameT[]
+}
+function handleKeypress(args:KeypressArgsT):FrameT[]{
+  const deletable = args.frameList.filter(frame => frame.active == true)
   // console.log(event)
-  switch (event.key) {
+  switch (args.event.key) {
     case 'a':
-    if (event.ctrlKey){
-      frameList = selectAllFrames(frameList)
-      State.append(frameList)
-      autosave(frameList)
+    if (args.event.ctrlKey){
+      args.frameList = selectAllFrames(args.frameList)
+      State.append(args.frameList)
+      autosave({userData: args.userData, frameList: args.frameList})
     }
     break
     case 'A':
-    if (event.ctrlKey){
-      frameList = clearActiveFrame(frameList)
-      State.append(frameList)
-      autosave(frameList)
+    if (args.event.ctrlKey){
+      args.frameList = clearActiveFrame(args.frameList)
+      State.append(args.frameList)
+      autosave({userData: args.userData, frameList: args.frameList})
     }
     break
     case 'y':
-    if (event.ctrlKey){
+    if (args.event.ctrlKey){
       State.advance()
     }
     break
     case 'z':
-    if (event.ctrlKey){
+    if (args.event.ctrlKey){
       State.reverse()
     }
     break
     case 'Z':
-    if (event.ctrlKey) {
+    if (args.event.ctrlKey) {
       console.log('yay~')
       State.advance()
     }
     break
     case 'Escape':
-    frameList = clearActiveFrame(frameList)
-    State.append(frameList)
-    autosave(frameList)
+    args.frameList = clearActiveFrame(args.frameList)
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
     break
     case 'Delete':
     case 'Backspace':
-    frameList = frameList.filter(frame => frame.active == false)
-    State.append(frameList)
-    autosave(frameList)
+    args.frameList = args.frameList.filter(frame => frame.active == false)
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
     break
     case 'ArrowLeft':
-    frameList = moveActiveFrame(frameList,'left')
-    State.append(frameList)
-    autosave(frameList)
+    args.frameList = moveActiveFrame(args.frameList,'left')
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
     break
     case 'ArrowRight':
-    frameList = moveActiveFrame(frameList,'right')
-    State.append(frameList)
-    autosave(frameList)
+    args.frameList = moveActiveFrame(args.frameList,'right')
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
     break
     case 'ArrowUp':
-    frameList = moveActiveFrame(frameList,'up')
-    State.append(frameList)
-    autosave(frameList)
+    args.frameList = moveActiveFrame(args.frameList,'up')
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
     break
     case 'ArrowDown':
-    frameList = moveActiveFrame(frameList,'down')
-    State.append(frameList)
-    autosave(frameList)
+    args.frameList = moveActiveFrame(args.frameList,'down')
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
     break
     default:
     break
   }
-  if (frameList) {
-    return frameList
+  if (args.frameList) {
+    return args.frameList
   }
 }
 
@@ -272,22 +286,41 @@ function moveHandles(frame: FrameT): FrameT {
   return frame;
 }
 
-
-async function paste (frameList:FrameT[], event:ClipboardEvent, appStorage:Storage):Promise<void> {
-  const imageFile = event?.clipboardData?.items[0].getAsFile();
-  let data = event?.clipboardData?.getData("text");
+type PasteArgsT = {
+  frameList: FrameT[]
+  event: ClipboardEvent
+  appStorage: Storage
+  userData: User
+  loggedIn: boolean
+}
+async function paste (args:PasteArgsT):Promise<void> {
+  const imageFile = args.event?.clipboardData?.items[0].getAsFile();
+  let data = args.event?.clipboardData?.getData("text");
+  console.log(args.loggedIn)
   if (imageFile) {
-    await saveImage({imageFile, frameList, appStorage})
-    const imageData = loadImage({appStorage, frameList})
-    data = imageData.text
+    console.log('image pasted')
+    if (args.loggedIn == false) {
+      await saveImage({imageFile, frameList: args.frameList, appStorage: args.appStorage})
+      const imageData = loadImage({appStorage: args.appStorage, frameList: args.frameList})
+      data = imageData.text
+    } else {
+      const { error, imageUrl } = await Storage.uploadImage({userData: args.userData, imageFile})
+      if (!error) {
+        data = imageUrl
+        console.log(data)
+      } else {
+        console.log(error)
+      }
+    }
   }
-  let newFrame = await buildFrame(data, frameList);
+  let newFrame = await buildFrame({userData: args.userData, url: data, frameList: args.frameList});
   newFrame.x = 50;
   newFrame.y = 100;
   newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
   
   const newImage = new Image()
   newImage.src = data
+  console.log(data)
   newImage.onload = () => {
     console.log(newImage.naturalHeight, newImage.naturalWidth)
     newFrame.height = newImage.naturalHeight
@@ -296,10 +329,10 @@ async function paste (frameList:FrameT[], event:ClipboardEvent, appStorage:Stora
     newFrame.style = calculateStyle(newFrame)
     moveHandles(newFrame)
     
-    data ? (frameList = [...frameList, newFrame]) : null;
-    frameList = reorderLayers(newFrame.id, frameList)
-    console.log(frameList.filter(frame => frame.id == newFrame.id))
-    State.append(frameList)
+    data ? (args.frameList = [...args.frameList, newFrame]) : null;
+    args.frameList = reorderLayers(newFrame.id, args.frameList)
+    console.log(args.frameList.filter(frame => frame.id == newFrame.id))
+    State.append(args.frameList)
   }
 }
 
@@ -329,7 +362,7 @@ async function saveImage (args:SaveImageArgs) {
   let base64
   reader.addEventListener('loadend', event => {
     base64 = reader.result
-
+    
     let localImageList = Save.loadFromLocal(args.appStorage,'localImages', []) as Array<ImageRecordT>
     localImageList != null ? localImageList : localImageList = []
     if (localImageList.length != 0 || localImageList != null) {
@@ -356,7 +389,7 @@ async function saveImage (args:SaveImageArgs) {
       Save.saveToLocal(args.appStorage,'localImages',localImageList)
     }
   })
-
+  
   reader.readAsDataURL(args.imageFile)
 }
 
