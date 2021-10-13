@@ -16,9 +16,19 @@
   */
 </script>
 
-<span>{val}</span>
-<button on:click='{()=>{Crier.send({notification:`nice! + ${Date.now()}`})}}'></button>
+<div>
+  <span>{val}</span>
+</div>
+<!-- <button on:click='{()=>{Crier.send({notification:`nice! + ${Date.now()}`})}}'></button> -->
 
 <style lang='scss'>
-  
+  div {
+    padding:1em;
+
+  }
+  span {
+    color: cyan;
+    text-align: left;
+    flex-grow: 1;
+  }
 </style>

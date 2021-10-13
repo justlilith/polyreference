@@ -2,7 +2,6 @@ import { browser } from '$app/env'
 import type { User } from '@supabase/gotrue-js';
 // import * as Helpers from '$lib/ts/helpers'
 import * as Storage from '$lib/ts/storage'
-import { userData } from './auth';
 
 let appStorage
 

@@ -3,6 +3,7 @@ import * as Storage from "$lib/ts/storage";
 import * as Save from "$lib/ts/autosave";
 import * as State from "$lib/ts/state";
 import * as Auth from "$lib/ts/auth";
+import * as Crier from '$lib/ts/crier' 
 import type { User } from "@supabase/gotrue-js";
 
 const defaultHandle = { width: 20, height: 20, x: 0, y: 0 }
@@ -146,6 +147,7 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
       args.frameList = selectAllFrames(args.frameList)
       State.append(args.frameList)
       autosave({userData: args.userData, frameList: args.frameList})
+      Crier.send({notification:'Select All'})
     }
     break
     case 'A':
@@ -153,34 +155,41 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
       args.frameList = clearActiveFrame(args.frameList)
       State.append(args.frameList)
       autosave({userData: args.userData, frameList: args.frameList})
+      Crier.send({notification:'Select All'})
     }
     break
     case 'y':
     if (args.event.ctrlKey){
       State.advance()
+      Crier.send({notification:'Redo'})
     }
     break
     case 'z':
     if (args.event.ctrlKey){
-      State.reverse()
-    }
-    break
-    case 'Z':
+      State.reverse(args.userData)
+    Crier.send({notification:'Undo'})
+    
+  }
+  break
+  case 'Z':
     if (args.event.ctrlKey) {
       console.log('yay~')
       State.advance()
+      Crier.send({notification:'Undo'})
     }
     break
     case 'Escape':
-    args.frameList = clearActiveFrame(args.frameList)
-    State.append(args.frameList)
-    autosave({userData: args.userData, frameList: args.frameList})
+      args.frameList = clearActiveFrame(args.frameList)
+      State.append(args.frameList)
+      autosave({userData: args.userData, frameList: args.frameList})
+      Crier.send({notification:'Select None'})
     break
     case 'Delete':
     case 'Backspace':
     args.frameList = args.frameList.filter(frame => frame.active == false)
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
+    Crier.send({notification:'Cleared Image'})
     break
     case 'ArrowLeft':
     args.frameList = moveActiveFrame(args.frameList,'left')
@@ -211,13 +220,16 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
 }
 
 
-function loadImage (args:LoadImageArgs):ImageRecordT {
+function loadImage (args:LoadImageArgs):Promise<ImageRecordT> {
   let localImageList:Array<ImageRecordT> = []
   localImageList = Save.loadFromLocal(args.appStorage,'localImages', []) as Array<ImageRecordT>
   localImageList != null ? null : localImageList = []
-  return localImageList.filter(image => {
+  const localImage = localImageList.filter(image => {
     return image.id == args.frameList.length
   })[0]
+  return new Promise((resolve) => {
+    resolve(localImage)
+  })
   // return localImageList[0].imageFile
 }
 
@@ -299,10 +311,11 @@ async function paste (args:PasteArgsT):Promise<void> {
   console.log(args.loggedIn)
   if (imageFile) {
     console.log('image pasted')
-    if (args.loggedIn == false) {
+    if (args.loggedIn == false || args.loggedIn == null) {
       await saveImage({imageFile, frameList: args.frameList, appStorage: args.appStorage})
-      const imageData = loadImage({appStorage: args.appStorage, frameList: args.frameList})
+      const imageData = await loadImage({appStorage: args.appStorage, frameList: args.frameList})
       data = imageData.text
+      console.log(data)
     } else {
       const { error, imageUrl } = await Storage.uploadImage({userData: args.userData, imageFile})
       if (!error) {

@@ -29,9 +29,10 @@ import type { Session, User } from '@supabase/gotrue-js';
 	let currentEdge:string = ""
 	let appStorage:Storage
 	
-	let loggedIn: boolean = false
-	let userData: User
-	let sessionData: Session
+	let loggedIn = false
+	let userData: User = null
+	let sessionData: Session = null
+	let firstRun = true
 	
 	onMount( async () => {
 		Auth.authStore.subscribe(async (update) => {
@@ -66,6 +67,9 @@ import type { Session, User } from '@supabase/gotrue-js';
 				frameList = []
 			}
 		})
+
+		loggedIn = await Auth.authCheck()
+		firstRun = false
 		
 		appStorage = window.localStorage
 		
@@ -75,7 +79,7 @@ import type { Session, User } from '@supabase/gotrue-js';
 			frameList ? oldFrameList = Helpers.deepCopy(frameList) : oldFrameList = []
 		}
 		
-		if (frameList === null || frameList === undefined || frameList?.length == 0){
+		if (loggedIn == false && frameList === null || frameList === undefined || frameList?.length == 0){
 			frameList = new Array()
 			
 			Helpers.buildFrame({
@@ -224,7 +228,7 @@ on:keydown="{(event) => {
 	on:drop|stopPropagation|preventDefault="{(event) => drop(event, coords)}"
 	on:paste="{async (event) => {
 		try {
-			Helpers.paste({userData, frameList, event, appStorage, loggedIn})
+			await Helpers.paste({userData, frameList, event, appStorage, loggedIn})
 		} catch (e) {
 			console.log(e)
 		}
@@ -355,6 +359,10 @@ on:keydown="{(event) => {
 </div>
 {/if}
 {/each}
+{:else}
+{#if firstRun}
+<div><h1>Loading...</h1></div>
+{/if}
 {/if}
 
 </div>
@@ -381,10 +389,11 @@ on:keydown="{(event) => {
 	}
 	
 	h1 {
-		color: #ff3e00;
+		color: cyan;
 		text-transform: uppercase;
 		font-size: 4em;
 		font-weight: 100;
+		padding:10%;
 	}
 	
 	@media (min-width: 640px) {
