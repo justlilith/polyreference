@@ -91,10 +91,10 @@ import { session } from '$app/stores'
       loginSuccess = true
     }
   }}">
-  <span class='left' >Email</span>
-  <input class='right' bind:value="{email}"/>
-  <span class='left'>Password</span>
-  <input class='right' type='password' bind:value="{password}"/>
+  <label class='left' for='email'>Email</label>
+  <input class='right' id='email' bind:value="{email}" type='email'/>
+  <label class='left' for='password'>Password</label>
+  <input class='right' id='password' bind:value="{password}" type='password'/>
   <!-- <button>Submit</button> -->
   <button class='span-both' value="submit">Submit</button>
 </form>
@@ -120,12 +120,12 @@ import { session } from '$app/stores'
 }}">
 <!-- <span class='left'>Phone</span>
   <input class='right' bind:value="{phone}"/> -->
-  <span class='left'>Name</span>
-  <input class='right' bind:value="{name}"/>
-  <span class='left'>Email</span>
-  <input class='right' bind:value="{email}"/>
-  <span class='left'>Password</span>
-  <input class='right' bind:value="{password}" type="password"/>
+  <label class='left' for='name'>Name</label>
+  <input class='right' id='name' bind:value="{name}"/>
+  <label class='left' for='email' >Email</label>
+  <input class='right' id='email' bind:value="{email}" type='email'/>
+  <label class='left' for='password'>Password</label>
+  <input class='right' id='password' bind:value="{password}" type="password"/>
   <button class='span-both'>Submit</button>
 </form>
 <button class='back-button span-both' on:click="{() =>{signupMenu = false; chooseAuth = true; clearResponses()}}">Back</button>
