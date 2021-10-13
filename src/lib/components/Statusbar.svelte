@@ -3,6 +3,7 @@
   import * as Storage from '$lib/ts/storage'
   import { browser } from '$app/env'
   import { space } from 'svelte/internal';
+  import Crier from '$lib/components/Crier.svelte'
   
   let user:string = ""
   let loggedIn:boolean = false
@@ -25,7 +26,11 @@
     <span>Welcome to Polyref. Sign up above to access your ref board from anywhere!</span>
     {/if}
   </div>
+  <div>
+    <Crier></Crier>
+  </div>
   <div id='dock'>
+		<span class="material-icons">info</span>
     <span>What is Polyref?</span>
   </div>
 </section>
