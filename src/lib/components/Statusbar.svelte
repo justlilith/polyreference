@@ -51,13 +51,14 @@
     color: hsl(180,100%,50%);
     padding:1em;
     text-align: left;
-    width:75%;
+    min-width:50%;
   }
   
   #dock {
     color: hsl(180,100%,50%);
     padding:1em;
     text-align: right;
+    flex-grow: 1;
   }
   
 </style>

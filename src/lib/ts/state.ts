@@ -1,3 +1,4 @@
+import type { User } from '@supabase/gotrue-js'
 import { writable, get } from 'svelte/store'
 import { autosave, saveToLocal } from './autosave'
 
@@ -51,18 +52,18 @@ function calculate (states:StateT[], index:number, framesSnapshot:FrameT[]):Stat
   }
 }
 
-function reverse ():void {
+function reverse (userData:User):void {
   console.log('reversing history uwu ✨')
   StateStore.update(() => {
     
     if (statePointer == 0) {
-      autosave([])
+      autosave({userData:userData, frameList:[]})
       return null
     }
     if (statePointer > 0) {
       statePointer -= 1
       console.log(stateList[statePointer].framesSnapshot)
-      autosave(stateList[statePointer].framesSnapshot)
+      autosave({userData:userData, frameList:stateList[statePointer].framesSnapshot})
       return stateList[statePointer]
     }
   })
