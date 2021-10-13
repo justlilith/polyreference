@@ -38,8 +38,12 @@ const authCheck = async ():Promise<boolean> => {
   }
 }
 
-
-const logInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
+type LoginResponseT = {
+  user: User
+  session: Session
+  error: Error
+}
+const logInWithEmail = async (args):Promise<LoginResponseT> => {
   const { user, session, error} = await supabase.auth.signIn({
     password: args.password
     , email: args.email
@@ -60,7 +64,7 @@ const logInWithEmail = async (args):Promise<Array<User|Session|Error>> => {
       }
     })
   }
-  return [user, session, error]
+  return {user:user, session:session, error:error}
 }
 
 
@@ -77,7 +81,7 @@ const logOut = async () => {
 }
 
 
-const signUpWithEmail = async (args):Promise<Array<User|Session|Error>> => {
+const signUpWithEmail = async (args):Promise<LoginResponseT> => {
   const { user, session, error} = await supabase.auth.signUp({
     password: args.password
     , email: args.email
@@ -90,7 +94,7 @@ const signUpWithEmail = async (args):Promise<Array<User|Session|Error>> => {
       userData = user
     }
   }
-  return [user, session, error]
+  return {user, session, error}
 }
 
 // const signUpWithPhone = async (args):Promise<Array<User|Session|Error>> => {

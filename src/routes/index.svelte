@@ -8,6 +8,7 @@
 	import Input from '$lib/components/Input.svelte'
 	import AuthMenu from '$lib/components/AuthMenu.svelte'
 	import Statusbar from '$lib/components/Statusbar.svelte'
+	import send from '$lib/components/Crier.svelte'
 	
 	import { autosave, loadFromLocal } from '$lib/ts/autosave'
 	import * as Storage from '$lib/ts/storage'
@@ -137,7 +138,7 @@ import type { Session, User } from '@supabase/gotrue-js';
 			let file = event.dataTransfer.items[0].getAsFile()
 			if (file && file.type.includes('image')) {
 				let data = URL.createObjectURL(file);
-				let newFrame = await Helpers.buildFrame(data, frameList);
+				let newFrame = await Helpers.buildFrame({url:data, userData, frameList});
 				newFrame.x = 50;
 				newFrame.y = 100;
 				newFrame.style = Helpers.calculateStyle(newFrame)
@@ -151,7 +152,7 @@ import type { Session, User } from '@supabase/gotrue-js';
 		}
 		if (!event.dataTransfer.getData("frame id")) {
 			let data = event.dataTransfer.getData("text");
-			let newFrame = await Helpers.buildFrame(data, frameList);
+			let newFrame = await Helpers.buildFrame({url:data, userData, frameList});
 			newFrame.x = event.clientX;
 			newFrame.y = event.clientY;
 			newFrame.style = `position:fixed; left:${newFrame.x}px; top:${newFrame.y}px;`;
@@ -272,8 +273,12 @@ on:keydown="{(event) => {
 	}}"
 	on:pointerdown="{(event) => {
 		// console.log(event)
-		let target = event.target
-		if (target?.id == 'dropzone') {
+		// let target = event.target
+		// let targetId = event.currentTarget.id
+		let targetId = event.target["id"]
+		// console.log(targetId)
+		// if (target?.id == 'dropzone') {
+		if (targetId == 'dropzone') {
 			if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
 				frameList = Helpers.clearActiveFrame(frameList)
 			}
@@ -318,7 +323,7 @@ on:keydown="{(event) => {
 		// frameList = newFrameList
 		State.append(frameList)
 		// console.log('what')
-		autosave(frameList)
+		autosave({userData: userData, frameList:frameList})
 	}}"
 	>
 	

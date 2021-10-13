@@ -1,6 +1,9 @@
 <script lang='ts'>
   import { fade } from 'svelte/transition'
   import * as Auth from '$lib/ts/auth'
+import { dataset_dev } from 'svelte/internal'
+import { session } from '$app/stores'
+  import type { User, Session } from '@supabase/supabase-js'
   
   let phone:string
   let name:string
@@ -11,32 +14,61 @@
   let chooseAuth:boolean
   let loginMenu:boolean
   let signupMenu:boolean
-
+  
+  let error:Error
+  let signupSuccess = false
+  let loginSuccess = false
+  let logOutSuccess = false
+  
   let loggedIn:boolean
-
+  
   Auth.authStore.subscribe((update)=> {
     loggedIn = update.loggedIn
   })
+
+  const clearResponses = () => {
+    signupSuccess = false
+    loginSuccess = false
+    error = null
+    logOutSuccess = false
+  }
+
+  function shakeDropdown () {
+    let box = document.getElementById('auth-dropdown')
+    let counter = 0
+    let id = setInterval(function shakeme () {
+      if (counter < 3) {
+        setTimeout(()=> {
+          box.setAttribute("style", "right:5px")
+          counter += 1
+        },50)
+        box.setAttribute("style", "right:0px")
+      } else {
+        clearInterval(id)
+        counter = 0
+      }
+    },100)
+  }
 </script>
 
 <div id='auth-menu'>
-  <button on:click='{()=> {authDropdown = true; chooseAuth = true; loginMenu = false; signupMenu = false}}'>
+  <button on:click='{()=> {authDropdown = true; chooseAuth = true; loginMenu = false; signupMenu = false; clearResponses()}}'>
     Menu
   </button>
 </div>
 
 {#if authDropdown}
-<div transition:fade|local='{{duration:100}}' class=  'modal' on:click='{()=> {authDropdown = false}}'>
+<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {authDropdown = false; clearResponses()}}'>
 </div>
-<div transition:fade|local='{{duration:100}}' class='auth-dropdown'>
-
+<div transition:fade|local='{{duration:100}}' class='auth-dropdown' id='auth-dropdown'>
+  
   {#if loggedIn}
-  <button class='back-button' on:click='{()=> {authDropdown = false; loginMenu = false; signupMenu = false; chooseAuth = false; Auth.logOut()}}'>
+  <button class='back-button span-both' on:click='{()=> {clearResponses(); logOutSuccess = true; authDropdown = true; loginMenu = false; signupMenu = false; chooseAuth = false; Auth.logOut()}}'>
     Log Out
   </button>
-
+  
   {:else}
-
+  
   {#if chooseAuth}
   <button on:click='{()=> {loginMenu = true; signupMenu = false; chooseAuth = false}}'>
     Log In
@@ -49,7 +81,15 @@
   <form class='span-both form' on:submit="{async (e)=>{
     e.preventDefault();
     // console.log(Auth.signUpWithPhone(phone))
-    console.log(await Auth.logInWithEmail({name:name, email: email, password:password}))
+    const res = await Auth.logInWithEmail({name:name, email: email, password:password})
+    error = res.error
+    console.log(res)
+    if (error) {
+      shakeDropdown()
+    }
+    if (!res.error) {
+      loginSuccess = true
+    }
   }}">
   <span class='left' >Email</span>
   <input class='right' bind:value="{email}"/>
@@ -58,35 +98,63 @@
   <!-- <button>Submit</button> -->
   <button class='span-both' value="submit">Submit</button>
 </form>
+<button class='back-button span-both' on:click="{() =>{loginMenu = false; chooseAuth = true; clearResponses()}}">Back</button>
 <p class='span-both'>
-  <span>Don't have an account?</span> <a href='#/' on:click="{()=> {loginMenu = false; signupMenu = true}}">Sign up here.</a>
+  <span>Don't have an account?</span> <a href='#/' on:click="{()=> {loginMenu = false; signupMenu = true; clearResponses()}}">Sign up here.</a>
 </p>
-<button class='back-button span-both' on:click="{() =>{loginMenu = false; chooseAuth = true}}">Back</button>
 {/if}
 {#if signupMenu}
 <form class='span-both form' on:submit="{async (e)=>{
   e.preventDefault();
-  // console.log(await Auth.signUpWithPhone({phone: phone, password: password, email: email}))
-  console.log(await Auth.signUpWithEmail({password: password, email: email}))
+  shakeDropdown()
+  const res = await Auth.signUpWithEmail({password: password, email: email})
+  console.log(res)
+  if (res?.user?.confirmation_sent_at){
+    signupSuccess = true
+    signupMenu = false
+  }
+  if (res?.error) {
+    error = res.error
+    shakeDropdown()
+  }
 }}">
 <!-- <span class='left'>Phone</span>
-<input class='right' bind:value="{phone}"/> -->
-<span class='left'>Name</span>
-<input class='right' bind:value="{name}"/>
-<span class='left'>Email</span>
-<input class='right' bind:value="{email}"/>
-<span class='left'>Password</span>
-<input class='right' bind:value="{password}" type="password"/>
-<button class='span-both'>Submit</button>
+  <input class='right' bind:value="{phone}"/> -->
+  <span class='left'>Name</span>
+  <input class='right' bind:value="{name}"/>
+  <span class='left'>Email</span>
+  <input class='right' bind:value="{email}"/>
+  <span class='left'>Password</span>
+  <input class='right' bind:value="{password}" type="password"/>
+  <button class='span-both'>Submit</button>
 </form>
+<button class='back-button span-both' on:click="{() =>{signupMenu = false; chooseAuth = true; clearResponses()}}">Back</button>
 <p class='span-both'>
-  <span>Already have an account?</span> <a href='#/' on:click="{()=> {loginMenu = true; signupMenu = false}}">Log in here.</a>
+  <span>Already have an account?</span> <a href='#/' on:click="{()=> {loginMenu = true; signupMenu = false; clearResponses()}}">Log in here.</a>
 </p>
-<button class='back-button span-both' on:click="{() =>{signupMenu = false; chooseAuth = true}}">Back</button>
 {/if}
 
 {/if}
-
+{#if error}
+<p class='span-both error'>
+<span>{`${error.message} :<`}</span>
+</p>
+{/if}
+{#if signupSuccess}
+<p class='span-both success'>
+<span>Congrats! Check your email to validate your account :></span>
+</p>
+{/if}
+{#if loginSuccess}
+<p class='span-both success'>
+<span>Congrats! You're now logged in :></span>
+</p>
+{/if}
+{#if logOutSuccess}
+<p class='span-both success'>
+<span>Congrats! You've now logged out :></span>
+</p>
+{/if}
 </div>
 {/if}
 
@@ -165,5 +233,13 @@
     position:fixed;
     width:100%;
     z-index: 140;
+  }
+
+  .error {
+    color: hsl(20,100%,50%);
+  }
+  
+  .success {
+    color: hsl(120,100%,50%);
   }
 </style>
