@@ -56,3 +56,13 @@ type SaveImageArgs = {
   frameList: FrameT[]
   appStorage: Storage
 }
+
+
+type NotificationArgsT = {
+  notification: string
+  duration?: number
+  interrupt?: boolean
+}
+type NotificationsStoreT = {
+  notifications: Array<NotificationArgsT>
+}

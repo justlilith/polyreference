@@ -5,8 +5,8 @@
   
   // Crier.send({notification:`Sweet!`})
 
-  Crier.store.subscribe((update) => {
-    val = update.notifications[0] ?? ""
+  Crier.store.subscribe((update:NotificationsStoreT) => {
+    val = update?.notifications?.at(0)?.notification ?? ""
   })
 
   /**

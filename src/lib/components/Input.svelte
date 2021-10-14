@@ -5,12 +5,14 @@
 	
 	export let frameList:FrameT[]
 	export let userData:User
+  export let keysLockedOut:boolean
 	
 	let inputContent:string = ''
 	
 	const keypressCheck = async (event) => {
 		// console.log(event)
 		if (event.key.toLowerCase() == 'enter') {
+			keysLockedOut = false
 			let newFrame = await buildFrame({userData, url: inputContent, frameList})
 			frameList = [...frameList, newFrame]
 			frameList = reorderLayers(newFrame.id, frameList)
@@ -26,10 +28,11 @@
 	placeholder="Enter image URL"
 	aria-placeholder="Enter image URL"
 	bind:value={inputContent}
-	on:keypress='{keypressCheck.bind(inputContent)}'>
+	on:keypress='{() => {keysLockedOut = true; keypressCheck.bind(inputContent)}}'>
 	<div id='submit'>
 		<button
 		on:mousedown={(event)=> {
+			keysLockedOut = false
 			event.preventDefault()
 			keypressCheck({key: 'enter'})
 		}}

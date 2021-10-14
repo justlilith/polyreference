@@ -21,6 +21,7 @@ import { session } from '$app/stores'
   let logOutSuccess = false
   
   let loggedIn:boolean
+  export let keysLockedOut:boolean
   
   Auth.authStore.subscribe((update)=> {
     loggedIn = update.loggedIn
@@ -52,13 +53,14 @@ import { session } from '$app/stores'
 </script>
 
 <div id='auth-menu'>
-  <button on:click='{()=> {authDropdown = true; chooseAuth = true; loginMenu = false; signupMenu = false; clearResponses()}}'>
-    Menu
+  <button on:click='{()=> {keysLockedOut = true; authDropdown = true; chooseAuth = true; loginMenu = false; signupMenu = false; clearResponses()}}'>
+    <span class='material-icons' >menu</span>
   </button>
 </div>
 
 {#if authDropdown}
-<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {authDropdown = false; clearResponses()}}'>
+{keysLockedOut = true}
+<div transition:fade|local='{{duration:100}}' class='modal' on:click='{()=> {keysLockedOut = false; authDropdown = false; clearResponses()}}'>
 </div>
 <div transition:fade|local='{{duration:100}}' class='auth-dropdown' id='auth-dropdown'>
   
@@ -156,6 +158,8 @@ import { session } from '$app/stores'
 </p>
 {/if}
 </div>
+{:else}
+{keysLockedOut = false}
 {/if}
 
 
