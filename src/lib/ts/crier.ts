@@ -1,28 +1,31 @@
 import { writable } from 'svelte/store'
 
-const store = writable({notifications: []})
+const store = writable({notifications:[]})
 
-const notifications:Array<string> = []
+const notifications:Array<NotificationArgsT> = []
 let currentNotification = ""
 let notificationInQueue = false
+let timeoutHandler = null
 
-type NotificationArgsT = {
-  notification:string
-}
-function send (args:NotificationArgsT):void {
+function send(args:NotificationArgsT):void {
+  if (args?.interrupt ?? true) {
+    clearTimeout(timeoutHandler)
+    notificationInQueue = false
+    notifications.splice(0,100)
+  }
   store.update(()=> {
-    notifications.push(args.notification)
+    notifications.push(args)
     // console.log(notifications)
     return {notifications:notifications}
   })
 }
 
-store.subscribe((update) => {
-  console.log(update)
+store.subscribe((update:NotificationsStoreT) => {
+  const duration = update?.notifications?.at(0)?.duration ?? 500
   if (update.notifications.length > 0 && notificationInQueue == false) {
     notificationInQueue = true
-    setTimeout(() => {
-      currentNotification = update.notifications[0]
+    timeoutHandler = setTimeout(() => {
+      currentNotification = update.notifications?.at(0).notification
       update.notifications.shift()
       // const newNotifications = 
       notificationInQueue = false
@@ -31,7 +34,8 @@ store.subscribe((update) => {
           notifications: update.notifications
         }
       })
-    },1000)
+    },duration)
+    console.log(timeoutHandler)
   }
 })
 

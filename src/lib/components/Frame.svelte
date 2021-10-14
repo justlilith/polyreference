@@ -1,9 +1,13 @@
 <script lang='ts'>
   import { createEventDispatcher } from 'svelte'
-
-	import { autosave, loadFromLocal } from '$lib/ts/autosave'
-  import * as Helpers from '$lib/ts/helpers'
   
+  import { autosave, loadFromLocal } from '$lib/ts/autosave'
+  import * as Helpers from '$lib/ts/helpers'
+  import * as Crier from '$lib/ts/crier'
+  import type { User } from '@supabase/gotrue-js';
+  // import * as Auth from '$lib/ts/auth'
+  
+  export let userData:User
   export let frame:FrameT
   export let frameList:FrameT[]
   
@@ -100,11 +104,12 @@
 <div class={`frame ${addedClass}`}
 draggable='true'
 style={frame?.style}
+on:click='{()=>{Crier.send({notification:`Frame ID: ${frame.id}`})}}'
 on:dragover="{event => handleDragMove(event)}"
 on:dragstart="{event => {
   offset = handleDragStartMove(event)
 }}"
-on:dragend="{event => autosave(frameList)}"
+on:dragend="{event => autosave({userData:userData, frameList:frameList})}"
 >
 </div>
 
@@ -250,10 +255,10 @@ Resize
     border-right:none;
     border:none;
   }
-
+  
   // a {
-	// 	color:red;
-	// 	text-decoration: none;
-	// }
-
-</style>
+    // 	color:red;
+    // 	text-decoration: none;
+    // }
+    
+  </style>

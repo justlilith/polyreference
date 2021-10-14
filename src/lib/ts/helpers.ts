@@ -167,11 +167,11 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
     case 'z':
     if (args.event.ctrlKey){
       State.reverse(args.userData)
-    Crier.send({notification:'Undo'})
-    
-  }
-  break
-  case 'Z':
+      Crier.send({notification:'Undo'})
+      
+    }
+    break
+    case 'Z':
     if (args.event.ctrlKey) {
       console.log('yay~')
       State.advance()
@@ -179,37 +179,41 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
     }
     break
     case 'Escape':
-      args.frameList = clearActiveFrame(args.frameList)
-      State.append(args.frameList)
-      autosave({userData: args.userData, frameList: args.frameList})
-      Crier.send({notification:'Select None'})
+    args.frameList = clearActiveFrame(args.frameList)
+    State.append(args.frameList)
+    autosave({userData: args.userData, frameList: args.frameList})
+    Crier.send({notification:'Select None'})
     break
     case 'Delete':
     case 'Backspace':
     args.frameList = args.frameList.filter(frame => frame.active == false)
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
-    Crier.send({notification:'Cleared Image'})
+    Crier.send({notification:'Cleared'})
     break
     case 'ArrowLeft':
     args.frameList = moveActiveFrame(args.frameList,'left')
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
+    Crier.send({notification:'Nudge Left', duration:300, interrupt:true})
     break
     case 'ArrowRight':
     args.frameList = moveActiveFrame(args.frameList,'right')
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
+    Crier.send({notification:'Nudge Right', duration:300, interrupt:true})
     break
     case 'ArrowUp':
     args.frameList = moveActiveFrame(args.frameList,'up')
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
+    Crier.send({notification:'Nudge Up', duration:300, interrupt:true})
     break
     case 'ArrowDown':
     args.frameList = moveActiveFrame(args.frameList,'down')
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
+    Crier.send({notification:'Nudge Down',duration:300, interrupt:true})
     break
     default:
     break

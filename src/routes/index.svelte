@@ -15,7 +15,7 @@
 	import * as Helpers from '$lib/ts/helpers'
 	import * as State from '$lib/ts/state'
 	import * as Auth from '$lib/ts/auth'
-import type { Session, User } from '@supabase/gotrue-js';
+	import type { Session, User } from '@supabase/gotrue-js';
 	
 	
 	let frameList:FrameT[]
@@ -67,7 +67,7 @@ import type { Session, User } from '@supabase/gotrue-js';
 				frameList = []
 			}
 		})
-
+		
 		loggedIn = await Auth.authCheck()
 		firstRun = false
 		
@@ -84,31 +84,32 @@ import type { Session, User } from '@supabase/gotrue-js';
 			
 			Helpers.buildFrame({
 				userData
-			, url: "https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
-			, frameList})
-			.then(newFrame => {
-				
-				newFrame.x = 50
-				newFrame.y = 100
-				newFrame.style = Helpers.calculateStyle(newFrame)
-				newFrame = Helpers.moveHandles(newFrame)
-				frameList.push(newFrame)
-				frameList = Helpers.reorderLayers(newFrame.id, frameList)
-				State.append(frameList)
-				// Storage.uploadFrames(Auth.userData, frameList)
-				// console.log(frameList.filter(frame => frame.id == frame.id))
-			})
+				, url: "https://c.pxhere.com/images/8c/33/1bb3e98042854d9eee207eb9facc-1622223.jpg!d"
+				, frameList})
+				.then(newFrame => {
+					
+					newFrame.x = 50
+					newFrame.y = 100
+					newFrame.style = Helpers.calculateStyle(newFrame)
+					newFrame = Helpers.moveHandles(newFrame)
+					frameList.push(newFrame)
+					frameList = Helpers.reorderLayers(newFrame.id, frameList)
+					State.append(frameList)
+					// Storage.uploadFrames(Auth.userData, frameList)
+					// console.log(frameList.filter(frame => frame.id == frame.id))
+				})
+			}
+			
+			State.append(frameList)
+			
+			
+			
+			states =
+			[
+			{ currentTrans: ''
+			, currentState:	State.calculate(states, 0, frameList)
+			, framesSnapshot: frameList
 		}
-		
-		State.append(frameList)
-		
-		
-		
-		states = //init
-		[
-		{ currentTrans: ''
-		, currentState:	State.calculate(states, 0, frameList)
-		, framesSnapshot: frameList }
 		]
 	})
 	
@@ -195,7 +196,7 @@ import type { Session, User } from '@supabase/gotrue-js';
 		dispatch(message);
 	};
 	
-	
+	let keysLockedOut = false
 	
 </script>
 
@@ -203,10 +204,12 @@ import type { Session, User } from '@supabase/gotrue-js';
 
 <svelte:window
 on:keydown="{(event) => {
-	if (loggedIn == false){
+	if (loggedIn == false) {
 		userData = null
 	}
-	Helpers.handleKeypress({userData, event, frameList})
+	if (keysLockedOut == false) {
+		Helpers.handleKeypress({userData, event, frameList})
+	}
 }}"
 />
 
@@ -214,12 +217,13 @@ on:keydown="{(event) => {
 
 <main>
 	
-	<Input bind:frameList bind:userData></Input>
+	<Input bind:keysLockedOut bind:frameList bind:userData></Input>
 	
-	<AuthMenu></AuthMenu>
+	<AuthMenu bind:keysLockedOut></AuthMenu>
 	
 	<div
 	id="dropzone"
+	on:click='{()=>{keysLockedOut = false}}'
 	bind:this={dropzone}
 	on:dragover|stopPropagation|preventDefault={(event) => {
 		// console.log('dragon')
@@ -236,7 +240,7 @@ on:keydown="{(event) => {
 		// console.log(event.clipboardData.items[0].getAsFile())
 		// console.log(event.clipboardData.getData("text"))
 		// console.log()
-}}"
+	}}"
 	
 	on:touchstart="{(event) => {
 		event.preventDefault()
@@ -282,89 +286,90 @@ on:keydown="{(event) => {
 		let targetId = event.target["id"]
 		// console.log(targetId)
 		// if (target?.id == 'dropzone') {
-		if (targetId == 'dropzone') {
-			if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
-				frameList = Helpers.clearActiveFrame(frameList)
-			}
-			if (event.pointerType == 'touch') { 
-				if (event.isPrimary) {
+			if (targetId == 'dropzone') {
+				if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
+					frameList = Helpers.clearActiveFrame(frameList)
+				}
+				if (event.pointerType == 'touch') { 
+					if (event.isPrimary) {
+						pannable = true
+					} else {
+						pannable = false
+					}
+				}
+				if (event.pointerType == 'mouse') {
 					pannable = true
-				} else {
-					pannable = false
+				}
+				frameList = frameList.map(frame => {
+					frame.offset = [
+					event.clientX - frame.x
+					, event.clientY - frame.y
+					]
+					return frame
+				})
+				// console.log(offset)
+			} else {
+				setActive()
+			}
+		}}"
+		on:pointermove="{(event) => {
+			if (resizable == true) {
+				if (frameList[currentFrame]) {
+					frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList)
 				}
 			}
-			if (event.pointerType == 'mouse') {
-				pannable = true
+			if (pannable && event?.pointerType === 'mouse') {
+				frameList = frameList.map(frame => {
+					frame = Helpers.moveFrame(event, frame, frame.offset)
+					return frame
+				})
 			}
-			frameList = frameList.map(frame => {
-				frame.offset = [
-				event.clientX - frame.x
-				, event.clientY - frame.y
-				]
-				return frame
-			})
-			// console.log(offset)
-		} else {
-			setActive()
-		}
-	}}"
-	on:pointermove="{(event) => {
-		if (resizable == true) {
-			if (frameList[currentFrame]) {
-				frameList[currentFrame] = Helpers.trackMouse(event, currentFrame, frameList)
+		}}"
+		on:pointerup="{event => {
+			setInactive()
+			pannable = false
+			// frameList = newFrameList
+			State.append(frameList)
+			// console.log('what')
+			autosave({userData: userData, frameList:frameList})
+		}}"
+		>
+		
+		{#if frameList?.length > 0}
+		{#each frameList as frame}
+		{#if frame == null}
+		<!--  -->
+		{frameList = Helpers.purgeFrames(frameList)}
+		{:else}
+		<div
+		on:pointerdown="{(event) => {
+			if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
+				frame = Helpers.moveHandles(frame)
+				frameList = Helpers.reorderLayers(frame.id, frameList)
 			}
-		}
-		if (pannable && event?.pointerType === 'mouse') {
-			frameList = frameList.map(frame => {
-				frame = Helpers.moveFrame(event, frame, frame.offset)
-				return frame
-			})
-		}
-	}}"
-	on:pointerup="{event => {
-		setInactive()
-		pannable = false
-		// frameList = newFrameList
-		State.append(frameList)
-		// console.log('what')
-		autosave({userData: userData, frameList:frameList})
-	}}"
-	>
-	
-	{#if frameList?.length > 0}
-	{#each frameList as frame}
-	{#if frame == null}
-	<!--  -->
-	{frameList = Helpers.purgeFrames(frameList)}
+			// State.append(frameList)
+		}}"
+		>
+		<Frame
+		bind:frameList
+		bind:userData
+		addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
+		on:message={(message) => {
+			let currentMessage = message;
+			currentFrame = currentMessage?.detail?.frame.id;
+			currentEdge = currentMessage?.detail?.edge;
+		}}
+		{frame}
+		/>
+	</div>
+	{/if}
+	{/each}
 	{:else}
-	<div
-	on:pointerdown="{(event) => {
-		if ((event.pointerType == 'touch' && event.isPrimary) || event.pointerType == 'mouse') { 
-			frame = Helpers.moveHandles(frame)
-			frameList = Helpers.reorderLayers(frame.id, frameList)
-		}
-		// State.append(frameList)
-	}}"
-	>
-	<Frame
-	bind:frameList
-	addedClass="{`${frame?.top == true ? 'zindexMax' : ''} ${frame?.active == true ? 'active' : ''}`}"
-	on:message={(message) => {
-		let currentMessage = message;
-		currentFrame = currentMessage?.detail?.frame.id;
-		currentEdge = currentMessage?.detail?.edge;
-	}}
-	{frame}
-	/>
-</div>
-{/if}
-{/each}
-{:else}
-{#if firstRun}
-<div><h1>Loading...</h1></div>
-{/if}
-{/if}
-
+	{#if firstRun}
+	<div><h1>Loading...</h1></div>
+	{/if}
+	{/if}
+	
 </div>
 
 <Statusbar></Statusbar>
