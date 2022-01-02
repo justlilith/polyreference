@@ -391,6 +391,7 @@ on:keydown="{(event) => {
 		position: absolute;
 		background-color: hsl(200, 10%, 10%);
 		/* overflow:scroll */
+		position: fixed;
 	}
 	
 	h1 {

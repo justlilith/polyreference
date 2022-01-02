@@ -140,7 +140,7 @@ type KeypressArgsT = {
 }
 function handleKeypress(args:KeypressArgsT):FrameT[]{
   const deletable = args.frameList.filter(frame => frame.active == true)
-  // console.log(event)
+  console.log(args.event)
   switch (args.event.key) {
     case 'a':
     if (args.event.ctrlKey){
@@ -173,7 +173,6 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
     break
     case 'Z':
     if (args.event.ctrlKey) {
-      console.log('yay~')
       State.advance()
       Crier.send({notification:'Undo'})
     }
@@ -214,6 +213,23 @@ function handleKeypress(args:KeypressArgsT):FrameT[]{
     State.append(args.frameList)
     autosave({userData: args.userData, frameList: args.frameList})
     Crier.send({notification:'Nudge Down',duration:300, interrupt:true})
+    break
+    case '-':
+    if (args.event.ctrlKey){
+      args.frameList = zoomFrames({...args, zoom: 'out'})
+      State.append(args.frameList)
+      autosave({userData: args.userData, frameList: args.frameList})
+      Crier.send({notification:'Zoom Out',duration:300, interrupt:true})
+    }
+    break
+    case '+':
+    case '=':
+    if (args.event.ctrlKey){
+      args.frameList = zoomFrames({...args, zoom: 'in'})
+      State.append(args.frameList)
+      autosave({userData: args.userData, frameList: args.frameList})
+      Crier.send({notification:'Zoom In',duration:300, interrupt:true})
+    }
     break
     default:
     break
@@ -418,8 +434,6 @@ function selectAllFrames(frameList:FrameT[]):FrameT[] {
 }
 
 
-// hey this needs to map over the filterlist instead of using css transforms
-
 function touchZoomHandler (frameList:FrameT[], event:TouchEvent, startingScale:number):FrameT[] {
   event.preventDefault()
   const transOptions:TransT =
@@ -430,24 +444,13 @@ function touchZoomHandler (frameList:FrameT[], event:TouchEvent, startingScale:n
   const pointer1 = event.targetTouches[0]
   const pointer2 = event.targetTouches[1]
   
-  // const leftOffset = Math.abs(pointer1.clientX + pointer2.clientX)
-  // const topOffset = Math.abs(pointer1.clientY + pointer2.clientY)
-  
   const width = Math.abs(pointer1.clientX - pointer2.clientX)
   const height = Math.abs(pointer1.clientY - pointer2.clientY)
-  
-  // let scaleCenter = [width/2, height/2]
-  
-  // let scale = (width * height)
   
   transOptions.transfomScale = Math.sqrt(width ** 2 + height ** 2)
   const ratio = transOptions.transfomScale / startingScale
   
-  // transOptions.center = [leftOffset/2, topOffset/2]
-  
   const newFrameList = [...frameList].map(frame => {
-    // frame.x = frame.x * transOptions.transfomScale
-    // frame.y = frame.y * transOptions.transfomScale
     frame.width *= ratio
     frame.height *= ratio
     frame.x *= ratio
@@ -456,9 +459,6 @@ function touchZoomHandler (frameList:FrameT[], event:TouchEvent, startingScale:n
     frame.style = calculateStyle(frame)
     return frame
   })
-  
-  
-  // startingScale = width
   
   return newFrameList
 }
@@ -491,6 +491,24 @@ function trackMouse (event:PointerEvent | TouchEvent, frameId:number, frameList:
 };
 
 
+function zoomFrames (args):FrameT[] {
+  args.event.preventDefault()
+  const ratio = args.zoom.toLowerCase() == 'in' ? 1.1 : .9
+
+  const newFrameList = [...args.frameList].map(frame => {
+    frame.width *= ratio
+    frame.height *= ratio
+    frame.x *= ratio
+    frame.y *= ratio
+    frame = moveHandles(frame)
+    frame.style = calculateStyle(frame)
+    return frame
+  })
+  
+  return newFrameList
+}
+
+
 export { 
   buildFrame
   , calculateStyle
@@ -508,4 +526,5 @@ export {
   , selectAllFrames
   , touchZoomHandler
   , trackMouse
+  , zoomFrames
 }

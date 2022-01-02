@@ -6,7 +6,7 @@ import * as Storage from '$lib/ts/storage'
 let appStorage
 
 if (browser) {
-	appStorage = window.localStorage;
+  appStorage = window.localStorage;
 }
 
 function saveToLocal (appStorage:Storage, prop:string, value:unknown):void {
@@ -33,9 +33,8 @@ type AutosaveArgsT = {
   frameList: Array<FrameT>
 }
 function autosave (args:AutosaveArgsT):void {
-  if (args.userData == null){
   saveToLocal(appStorage, 'frameList', args.frameList)
-  } else {
+  if (args.userData){
     Storage.uploadFrames(args.userData,args.frameList)
   }
   console.log('saved uwu ✨')
